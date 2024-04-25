@@ -4,6 +4,7 @@ import numpy as np
 
 from utils_Sam import *
 
+raise NotImplementedError('Error in the current file, will update later')
 ### Global variables
 np.random.seed(42)
 

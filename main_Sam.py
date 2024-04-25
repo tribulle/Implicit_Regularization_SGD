@@ -4,13 +4,12 @@ import numpy as np
 
 from utils_Sam import *
 
-raise NotImplementedError('Error in the current file, will update later')
 ### Global variables
 np.random.seed(42)
 
 n,d = 100,20
 intern = 5
-lambda_ = 1.
+lambda_ = 1e-3
 
 snr = 10 # signal to noise ratio
 
@@ -30,7 +29,7 @@ obj_noise = objective(input,output_noise,sol_ridge_noise)
 ### Define MLP
 MLP = Multi_Layer_Perceptron(input_dim=d,
                              intern_dim=intern,
-                             output_dim=n,
+                             output_dim=1,
                              depth = 1)
 
 input = (torch.from_numpy(input).to(torch.float32))
@@ -41,16 +40,20 @@ output_noise = (torch.from_numpy(output_noise).to(torch.float32))
 #train(MLP, input, output, init_norm = 0, epochs = 40000, debug = 1)
 #train(MLP, input, output, init_norm = 1, epochs = 40000, debug = 1)
 train(MLP, input, output, init_norm = 2, epochs = 1000, debug = 1, savename='no_noise_Sam.pt')
-sol_MLP = torch.eye(d)
-for layer in MLP.children():
-    sol_MLP = layer.weight@sol_MLP
-
-compare(input, output, sol_ridge, sol_MLP)
+with torch.no_grad():    
+    sol_MLP = torch.eye(d)
+    for layer in MLP.children():
+        sol_MLP = layer.weight@sol_MLP
+    sol_MLP.squeeze_()
+    print('Clean observations')
+    compare(input, output, sol_ridge, sol_MLP)
 #train(MLP, input, output, init_norm = 10, epochs = 40000, debug = 1)
 
 train(MLP, input, output_noise, init_norm = 2, epochs = 1000, debug = 1, savename='noise_Sam.pt')
-sol_MLP_noise = torch.eye(d)
-for layer in MLP.children():
-    sol_MLP_noise = layer.weight@sol_MLP
-
-compare(input, output_noise, sol_ridge_noise, sol_MLP_noise)
+with torch.no_grad():
+    sol_MLP_noise = torch.eye(d)
+    for layer in MLP.children():
+        sol_MLP_noise = layer.weight@sol_MLP_noise
+    sol_MLP_noise.squeeze_()
+    print('Noisy observations')
+    compare(input, output_noise, sol_ridge_noise, sol_MLP_noise)

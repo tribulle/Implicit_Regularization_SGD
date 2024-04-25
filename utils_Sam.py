@@ -11,16 +11,17 @@ DIRPATH = 'models/'
 def objective(A,b,x):
     return ((A@x-b)**2).sum()/(2*A.shape[0])
 
-def objective_nonlinear(Ws,b,x):
-    A = Ws[0]
-    for k in range(1,len(Ws)):
-        A = Ws[k]@A
+def objective_nonlinear(A,b,Xs):
+    x = Xs[0]
+    for k in range(1,len(Xs)):
+        x = Xs[k]@x
+    x = np.squeeze(x)
     return ((A@x-b)**2).sum()/(2*A.shape[0])
 
 ### Ridge regression (L2 penalization)
 def ridge(A,b,lambda_):
     '''
-    Solves min 1/(2*n)*||Ax-b||^2+||lambda_*x||^2
+    Solves min 1/(2*n)*||Ax-b||^2+lambda_*||x||^2
 
     Parameters
     ----------
@@ -30,7 +31,7 @@ def ridge(A,b,lambda_):
     b: (n,) array
         Observations
     
-    lambda_: number, (n,) or (n,d) array
+    lambda_: number
         L2 penalization parameter
     
     Returns
@@ -41,17 +42,13 @@ def ridge(A,b,lambda_):
     n,d = A.shape
     if isinstance(lambda_, numbers.Number): # real number
         if d<=n: # underparametrized
-            inv = np.linalg.inv(1/n*A.T@A+lambda_**2*np.eye(d))
-            res = inv@(A.T)@b
+            inv = np.linalg.inv(1/n*A.T@A+2*lambda_*np.eye(d))
+            res = inv@(A.T)@b/n
         else: # overparametrized
-            inv = np.linalg.inv(1/n*A@(A.T)+lambda_**2*np.eye(n))
-            res = A.T@inv@b
+            inv = np.linalg.inv(1/n*A@(A.T)+2*lambda_*np.eye(n))
+            res = A.T@inv@b/n
     else: # multi-dim
-        if lambda_.ndim == 1: # assumes regularization per dimension
-            inv = np.linalg.inv(1/n*A.T@A+np.eye(lambda_**2))
-        elif lambda_.ndim == 2: # assumes matrix regularization
-            inv = np.linalg.inv(1/n*A.T@A+lambda_.T@lambda_)
-        res = inv@(A.T)@b
+        raise NotImplementedError('Penalization per dimension not yet implemented')
     return res
 
 def solve_nonlinear_ridge(Ws, b, lambda_):
@@ -91,7 +88,7 @@ class Multi_Layer_Perceptron(nn.Sequential):
         dict.update({"output" : nn.Linear(intern_dim,output_dim,bias=isBiased)})
 
         super().__init__(dict)
-        
+
         self.reset_init_weights_biases() # so that we do not use a default initialization
 
     def reset_init_weights_biases(self, norm = None):

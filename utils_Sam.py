@@ -5,6 +5,12 @@ import numbers
 def objective(A,b,x):
     return np.sum((A@x-b)**2)/(2*A.shape[0])
 
+def objective_nonlinear(Ws,b,x):
+    A = Ws[0]
+    for k in range(1,len(Ws)):
+        A = Ws[k]@A
+    return np.sum((A@x-b)**2)/(2*A.shape[0])
+
 ### Ridge regression (L2 penalization)
 def ridge(A,b,lambda_):
     '''
@@ -30,3 +36,4 @@ def solve_nonlinear_ridge(Ws, b, lambda_):
         A = Ws[k]@A
     x = ridge(A,b,lambda_)
     return x
+

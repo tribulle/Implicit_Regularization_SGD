@@ -10,7 +10,7 @@ np.random.seed(42)
 n,d = 100,20
 intern = 5
 lambda_ = 1e-3
-o = 4
+o = 10
 snr = 10 # signal to noise ratio
 
 ### Define the problem

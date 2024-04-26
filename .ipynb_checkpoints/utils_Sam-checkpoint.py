@@ -9,14 +9,14 @@ DIRPATH = 'models/'
 
 ### Define objective function
 def objective(A,b,x):
-    return ((A@x-b)**2).sum()/(A.shape[0])
+    return ((A@x-b)**2).sum()/(2*A.shape[0])
 
 def objective_nonlinear(A,b,Xs):
     x = Xs[0]
     for k in range(1,len(Xs)):
         x = Xs[k]@x
     x = np.squeeze(x)
-    return ((A@x-b)**2).sum()/(A.shape[0])
+    return ((A@x-b)**2).sum()/(2*A.shape[0])
 
 ### Ridge regression (L2 penalization)
 def ridge(A,b,lambda_):
@@ -83,7 +83,7 @@ class MSE(nn.Module):
         super(MSE, self).__init__()
 
     def forward(self, inputs, targets):
-        loss = torch.nn.functional.pairwise_distance(inputs,targets).square().mean()
+        loss = torch.nn.functional.pairwise_distance(inputs,targets).square().mean()/2
         return loss
         
 ### MLP

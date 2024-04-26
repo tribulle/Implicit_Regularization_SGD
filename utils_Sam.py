@@ -9,14 +9,14 @@ DIRPATH = 'models/'
 
 ### Define objective function
 def objective(A,b,x):
-    return ((A@x-b)**2).sum()/(2*A.shape[0])
+    return ((A@x-b)**2).sum()/(A.shape[0])
 
 def objective_nonlinear(A,b,Xs):
     x = Xs[0]
     for k in range(1,len(Xs)):
         x = Xs[k]@x
     x = np.squeeze(x)
-    return ((A@x-b)**2).sum()/(2*A.shape[0])
+    return ((A@x-b)**2).sum()/(A.shape[0])
 
 ### Ridge regression (L2 penalization)
 def ridge(A,b,lambda_):
@@ -77,8 +77,16 @@ def solve_nonlinear_ridge(Ws, b, lambda_):
     x = ridge(A,b,lambda_)
     return x
 
-### MLP
+### CustomLoss
+class MSE(nn.Module):
+    def __init__(self):
+        super(MSE, self).__init__()
 
+    def forward(self, inputs, targets):
+        loss = torch.nn.functional.pairwise_distance(inputs,targets).square().mean()
+        return loss
+        
+### MLP
 class Multi_Layer_Perceptron(nn.Sequential):
     def __init__(self, input_dim, intern_dim, output_dim, depth = 2, isBiased = False):
         
@@ -102,7 +110,7 @@ class Multi_Layer_Perceptron(nn.Sequential):
             if layer.bias is not None:
                 layer.biases.data.uniform_(-stdv, stdv)
 
-def train(model, input_data, output_data, lossFct = nn.MSELoss(), optimizer = None, epochs = 20, init_norm = None, save = True, debug = False, savename='model.pt'):
+def train(model, input_data, output_data, lossFct = MSE(), optimizer = None, epochs = 20, init_norm = None, save = True, debug = False, savename='model.pt'):
 
     if optimizer is None:
         optimizer = torch.optim.SGD(model.parameters())
@@ -124,16 +132,15 @@ def train(model, input_data, output_data, lossFct = nn.MSELoss(), optimizer = No
 
         if debug:
             if (i+1)%(epochs/debug) == 0:
-                print(f"Epoch: {i+1}   Loss: {loss.item()}")
+                print(f"Epoch: {i+1}   Loss: {loss.item():.3e}")
         
         if save:
             torch.save(model.state_dict(), DIRPATH+savename)
-    
+
 ### Comparison of models
 def compare(input, output, w1, w2):
     res1 = objective(input, output, w1)
     res2 = objective(input, output, w2)
-
     print('Model 1:')
     print(f'   - objective: {res1:.3e}')
     print(f'   - weights norm: {np.linalg.norm(w1):.2f}')

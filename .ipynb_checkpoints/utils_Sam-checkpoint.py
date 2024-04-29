@@ -108,7 +108,7 @@ class Multi_Layer_Perceptron(nn.Sequential):
             
             layer.weight.data.uniform_(-stdv, stdv)
             if layer.bias is not None:
-                layer.biases.data.uniform_(-stdv, stdv)
+                layer.bias.data.uniform_(-stdv, stdv)
 
 class GD(torch.optim.Optimizer):
     def __init__(self, params, lr=0.01):

@@ -40,7 +40,8 @@ output_Tensor = torch.from_numpy(observations).to(torch.float32)
 MLP = Multi_Layer_Perceptron(input_dim=p,
                              intern_dim=intern_dim,
                              output_dim=1,
-                             depth=0)
+                             depth=0,
+                             isBiased = False)
 
 errors_MLP = train(MLP,
       input_Tensor,
@@ -49,7 +50,7 @@ errors_MLP = train(MLP,
       optimizer=optimizer,
       epochs=epochs,
       return_vals=True,
-      init_norm = 1,
+      init_norm = None,
       lr = 0.001)
 
 fig1,ax1 = plt.subplots(1,1)
@@ -57,5 +58,8 @@ ax1.plot(range(epochs), errors_MLP, marker='*')
 ax1.set_xlabel(r'Iteration $t$')
 ax1.set_ylabel(r'$R(\theta_t) - R^*$')
 ax1.set_xscale('log')
-ax1.set_yscale('log')
+ax1.set_yscale('linear')
+plt.xlim(left=1)
+plt.ylim(bottom=0)
+plt.grid(color='black', which="both", linestyle='-', linewidth=0.2)
 plt.savefig(f'figures/excess_risk_n{n}_t{epochs}_{optimizer}')

@@ -48,7 +48,9 @@ errors_MLP = train(MLP,
       lossFct = nn.MSELoss(),
       optimizer=optimizer,
       epochs=epochs,
-      return_vals=True)
+      return_vals=True,
+      init_norm = 1,
+      lr = 0.001)
 
 fig1,ax1 = plt.subplots(1,1)
 ax1.plot(range(epochs), errors_MLP, marker='*')

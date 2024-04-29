@@ -143,9 +143,9 @@ def train(model, input_data, output_data, lossFct = nn.MSELoss(), optimizer = 'S
         if return_vals:
             errors[i] = loss.item()
 
-        if math.isnan(loss.item()):
-            print(f"Epoch: {i+1}   Loss: {loss.item()}")
-            break
+        #if math.isnan(loss.item()):
+            #print(f"Epoch: {i+1}   Loss: {loss.item()}")
+            #break
             
         optimizer.zero_grad()
         loss.backward()

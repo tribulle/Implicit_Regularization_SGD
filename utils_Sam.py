@@ -110,12 +110,25 @@ class Multi_Layer_Perceptron(nn.Sequential):
             if layer.bias is not None:
                 layer.biases.data.uniform_(-stdv, stdv)
 
+class GD(torch.optim.Optimizer):
+    def __init__(self, params, lr=0.01):
+        super(GD, self).__init__(params, dict(lr=lr))
+
+    def step(self):
+        for group in self.param_groups:
+            for p in group['params']:
+                if p.grad is not None:
+                    grad = p.grad.data
+                    p.data -= group['lr'] * grad
+
 def train(model, input_data, output_data, lossFct = nn.MSELoss(), optimizer = 'SGD', lr=0.001, epochs = 20, return_vals = False, init_norm = None, save = True, debug = False, savename='model.pt'):
 
     if optimizer == 'SGD':
         optimizer = torch.optim.SGD(model.parameters(), lr=lr)
     elif optimizer == 'ASGD':
         optimizer = torch.optim.ASGD(model.parameters(), lr=lr)
+    elif optimizer == 'GD':
+        optimizer = GD(model.parameters(), lr=lr)
     
     if init_norm is not None:
         model.reset_init_weights_biases(init_norm)

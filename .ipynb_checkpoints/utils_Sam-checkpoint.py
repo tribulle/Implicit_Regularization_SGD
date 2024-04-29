@@ -110,17 +110,38 @@ class Multi_Layer_Perceptron(nn.Sequential):
             if layer.bias is not None:
                 layer.biases.data.uniform_(-stdv, stdv)
 
-def train(model, input_data, output_data, lossFct = MSE(), optimizer = None, epochs = 20, init_norm = None, save = True, debug = False, savename='model.pt'):
+class GD(torch.optim.Optimizer):
+    def __init__(self, params, lr=0.01):
+        super(GD, self).__init__(params, dict(lr=lr))
 
-    if optimizer is None:
-        optimizer = torch.optim.SGD(model.parameters())
+    def step(self):
+        for group in self.param_groups:
+            for p in group['params']:
+                if p.grad is not None:
+                    grad = p.grad.data
+                    p.data -= group['lr'] * grad
+
+def train(model, input_data, output_data, lossFct = nn.MSELoss(), optimizer = 'SGD', lr=0.001, epochs = 20, return_vals = False, init_norm = None, save = True, debug = False, savename='model.pt'):
+
+    if optimizer == 'SGD':
+        optimizer = torch.optim.SGD(model.parameters(), lr=lr)
+    elif optimizer == 'ASGD':
+        optimizer = torch.optim.ASGD(model.parameters(), lr=lr)
+    elif optimizer == 'GD':
+        optimizer = GD(model.parameters(), lr=lr)
     
     if init_norm is not None:
         model.reset_init_weights_biases(init_norm)
+    
+    if return_vals:
+        errors = np.zeros(epochs)
 
     for i in range(epochs):
-        y_pred = model(input_data)
+        y_pred = model(input_data).squeeze_()
         loss = lossFct(y_pred, output_data)
+
+        if return_vals:
+            errors[i] = loss.item()
 
         if math.isnan(loss.item()):
             print(f"Epoch: {i+1}   Loss: {loss.item()}")
@@ -134,8 +155,11 @@ def train(model, input_data, output_data, lossFct = MSE(), optimizer = None, epo
             if (i+1)%(epochs/debug) == 0:
                 print(f"Epoch: {i+1}   Loss: {loss.item():.3e}")
         
-        if save:
-            torch.save(model.state_dict(), DIRPATH+savename)
+    if save:
+        torch.save(model.state_dict(), DIRPATH+savename)
+    
+    if return_vals:
+        return errors
 
 ### Comparison of models
 def compare(input, output, w1, w2):

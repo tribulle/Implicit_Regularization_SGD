@@ -8,7 +8,7 @@ np.random.seed(42)
 
 ### Parameters
 p = 100
-n = 1500
+n = 100
 sigma2 = 2
 
 lambda_ = 1e-3
@@ -16,6 +16,8 @@ lambda_ = 1e-3
 epochs = 500
 intern_dim=10
 optimizer='GD'
+
+model_name = 'MLP' #'MLP' or 'SLN'
 
 ### Data generation
 data = np.random.multivariate_normal(
@@ -37,13 +39,17 @@ w_ridge = ridge(data, observations, lambda_)
 input_Tensor = torch.from_numpy(data).to(torch.float32)
 output_Tensor = torch.from_numpy(observations).to(torch.float32)
 
-MLP = Multi_Layer_Perceptron(input_dim=p,
-                             intern_dim=intern_dim,
-                             output_dim=1,
-                             depth=0,
-                             isBiased = False)
+if model_name == 'MLP':
+    model = MultiLayerPerceptron(input_dim=p,
+                                 intern_dim=intern_dim,
+                                 output_dim=1,
+                                 depth=0,
+                                 isBiased = False)
+elif model_name == 'SLN':
+    model = SingleLayerNet(input_size=p,
+                         output_size=1)
 
-errors_MLP = train(MLP,
+errors = train(model,
       input_Tensor,
       output_Tensor,
       lossFct = nn.MSELoss(),
@@ -55,7 +61,7 @@ errors_MLP = train(MLP,
       lr = 0.001)
 
 fig1,ax1 = plt.subplots(1,1)
-ax1.plot(range(epochs), errors_MLP, marker='*')
+ax1.plot(range(epochs), errors, marker='*')
 ax1.set_xlabel(r'Iteration $t$')
 ax1.set_ylabel(r'$R(\theta_t) - R^*$')
 ax1.set_xscale('log')
@@ -63,4 +69,4 @@ ax1.set_yscale('linear')
 plt.xlim(left=1)
 plt.ylim(bottom=0)
 plt.grid(color='black', which="both", linestyle='-', linewidth=0.2)
-plt.savefig(f'figures/excess_risk_n{n}_t{epochs}_{optimizer}')
+plt.savefig(f'figures/excess_risk_{model_name}_n{n}_t{epochs}_{optimizer}')

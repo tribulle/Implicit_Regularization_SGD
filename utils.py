@@ -87,7 +87,7 @@ class MSE(nn.Module):
         return loss
         
 ### MLP
-class Multi_Layer_Perceptron(nn.Sequential):
+class MultiLayerPerceptron(nn.Sequential):
     def __init__(self, input_dim, intern_dim, output_dim, depth = 2, isBiased = False):
         
         dict = OrderedDict([("input",nn.Linear(input_dim,intern_dim, bias=isBiased))])
@@ -110,6 +110,15 @@ class Multi_Layer_Perceptron(nn.Sequential):
             if layer.bias is not None:
                 layer.bias.data.uniform_(-stdv, stdv)
 
+class SingleLayerNet(nn.Module):
+    def __init__(self, input_size, output_size):
+        super(SingleLayerNet, self).__init__()
+        self.layer = nn.Linear(input_size, output_size, bias=False)
+        
+    def forward(self, x):
+        return self.layer(x)
+
+### Optimizers
 class GD(torch.optim.Optimizer):
     def __init__(self, params, lr=0.001):
         super(GD, self).__init__(params, dict(lr=lr))
@@ -120,6 +129,8 @@ class GD(torch.optim.Optimizer):
                 if p.grad is not None:
                     grad = p.grad.data
                     p.data -= group['lr'] * grad
+
+
 
 def train(model, input_data, output_data, lossFct = nn.MSELoss(), optimizer = 'SGD', lr=0.001, epochs = 20, batch_size=None, return_vals = False, init_norm = None, save = True, debug = False, savename='model.pt'):
 

@@ -2,7 +2,7 @@ import torch
 import matplotlib.pyplot as plt
 import numpy as np
 
-from utils_Sam import *
+from utils import *
 
 ### Global variables
 np.random.seed(42)
@@ -27,7 +27,7 @@ sol_ridge_noise = ridge(input,output_noise,lambda_)
 obj_noise = objective(input,output_noise,sol_ridge_noise)
 
 ### Define MLP
-MLP = Multi_Layer_Perceptron(input_dim=d,
+MLP = MultiLayerPerceptron(input_dim=d,
                              intern_dim=intern,
                              output_dim=o,
                              depth = 1)

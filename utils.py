@@ -111,7 +111,7 @@ class Multi_Layer_Perceptron(nn.Sequential):
                 layer.bias.data.uniform_(-stdv, stdv)
 
 class GD(torch.optim.Optimizer):
-    def __init__(self, params, lr=0.01):
+    def __init__(self, params, lr=0.001):
         super(GD, self).__init__(params, dict(lr=lr))
 
     def step(self):
@@ -121,7 +121,7 @@ class GD(torch.optim.Optimizer):
                     grad = p.grad.data
                     p.data -= group['lr'] * grad
 
-def train(model, input_data, output_data, lossFct = nn.MSELoss(), optimizer = 'SGD', lr=0.001, epochs = 20, return_vals = False, init_norm = None, save = True, debug = False, savename='model.pt'):
+def train(model, input_data, output_data, lossFct = nn.MSELoss(), optimizer = 'SGD', lr=0.001, epochs = 20, batch_size=None, return_vals = False, init_norm = None, save = True, debug = False, savename='model.pt'):
 
     if optimizer == 'SGD':
         optimizer = torch.optim.SGD(model.parameters(), lr=lr)
@@ -136,17 +136,28 @@ def train(model, input_data, output_data, lossFct = nn.MSELoss(), optimizer = 'S
     if return_vals:
         errors = np.zeros(epochs)
 
+    n = len(input_data)
+    if batch_size is not None:
+        n_batches = n//batch_size
     for i in range(epochs):
-        y_pred = model(input_data).squeeze_()
-        loss = lossFct(y_pred, output_data)
-
+        rand_idx = torch.randperm(n) # permutation of data samples
+        if batch_size is not None:
+            loss = 0
+            for t in range(n_batches):
+                idx = rand_idx[t*batch_size:(t+1)*batch_size]
+                y_pred = model(input_data[idx,:]).squeeze_()
+                loss += lossFct(y_pred, output_data[idx])
+        else:
+            y_pred = model(input_data[rand_idx,:]).squeeze_()
+            loss = lossFct(y_pred, output_data[rand_idx])
+            
         if return_vals:
             errors[i] = loss.item()
 
-        #if math.isnan(loss.item()):
-            #print(f"Epoch: {i+1}   Loss: {loss.item()}")
-            #break
-            
+            #if math.isnan(loss.item()):
+                #print(f"Epoch: {i+1}   Loss: {loss.item()}")
+                #break
+
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
@@ -154,7 +165,7 @@ def train(model, input_data, output_data, lossFct = nn.MSELoss(), optimizer = 'S
         if debug:
             if (i+1)%(epochs/debug) == 0:
                 print(f"Epoch: {i+1}   Loss: {loss.item():.3e}")
-        
+
     if save:
         torch.save(model.state_dict(), DIRPATH+savename)
     

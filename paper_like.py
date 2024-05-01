@@ -2,13 +2,13 @@ import torch
 import numpy as np
 import matplotlib.pyplot as plt
 
-from utils_Sam import *
+from utils import *
 
 np.random.seed(42)
 
 ### Parameters
 p = 100
-n = 100
+n = 1500
 sigma2 = 2
 
 lambda_ = 1e-3
@@ -49,6 +49,7 @@ errors_MLP = train(MLP,
       lossFct = nn.MSELoss(),
       optimizer=optimizer,
       epochs=epochs,
+      batch_size=None,
       return_vals=True,
       init_norm = None,
       lr = 0.001)

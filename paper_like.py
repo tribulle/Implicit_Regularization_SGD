@@ -1,6 +1,7 @@
 import torch
 import numpy as np
 import matplotlib.pyplot as plt
+from tqdm import tqdm
 
 from utils import *
 
@@ -17,51 +18,59 @@ epochs = 500
 intern_dim=10
 optimizer='GD'
 
-model_name = 'MLP' #'MLP' or 'SLN'
+nb_avg = 50
 
-### Data generation
-data = np.random.multivariate_normal(
-    np.zeros(p),
-    np.ones((p,p)),
-    size=n) # shape (n,p)
+model_name = 'SLN' #'MLP' or 'SLN'
 
-w_true = np.ones(p)*1/np.sqrt(p)
+### Repeating experiment
+errors = np.zeros((nb_avg, epochs))
+for i in tqdm(range(nb_avg)):
+    ### Data generation
+    data = np.random.multivariate_normal(
+        np.zeros(p),
+        np.ones((p,p)),
+        size=n) # shape (n,p)
 
-observations = [np.random.normal(
-    np.dot(w_true, x),
-    sigma2)
-    for x in data]
-observations = np.array(observations) # shape (n,)
+    w_true = np.ones(p)*1/np.sqrt(p)
 
-### Solving the problem
-w_ridge = ridge(data, observations, lambda_)
+    observations = [np.random.normal(
+        np.dot(w_true, x),
+        sigma2)
+        for x in data]
+    observations = np.array(observations) # shape (n,)
 
-input_Tensor = torch.from_numpy(data).to(torch.float32)
-output_Tensor = torch.from_numpy(observations).to(torch.float32)
+    ### Solving the problem
+    #w_ridge = ridge(data, observations, lambda_)
 
-if model_name == 'MLP':
-    model = MultiLayerPerceptron(input_dim=p,
-                                 intern_dim=intern_dim,
-                                 output_dim=1,
-                                 depth=0,
-                                 isBiased = False)
-elif model_name == 'SLN':
-    model = SingleLayerNet(input_size=p,
-                         output_size=1)
+    input_Tensor = torch.from_numpy(data).to(torch.float32)
+    output_Tensor = torch.from_numpy(observations).to(torch.float32)
 
-errors = train(model,
-      input_Tensor,
-      output_Tensor,
-      lossFct = nn.MSELoss(),
-      optimizer=optimizer,
-      epochs=epochs,
-      batch_size=None,
-      return_vals=True,
-      init_norm = None,
-      lr = 0.001)
+    if model_name == 'MLP':
+        model = MultiLayerPerceptron(input_dim=p,
+                                     intern_dim=intern_dim,
+                                     output_dim=1,
+                                     depth=0,
+                                     isBiased = False)
+    elif model_name == 'SLN':
+        model = SingleLayerNet(input_size=p,
+                             output_size=1)
+
+    errors[i,:] = train(model,
+          input_Tensor,
+          output_Tensor,
+          lossFct = nn.MSELoss(),
+          optimizer=optimizer,
+          epochs=epochs,
+          batch_size=None,
+          return_vals=True,
+          init_norm = None,
+          lr = 0.001)
+
+mean_error = np.mean(errors, axis=0)
 
 fig1,ax1 = plt.subplots(1,1)
-ax1.plot(range(epochs), errors, marker='*')
+ax1.plot(range(epochs), mean_error, marker='*')
+ax1.set_title(f'Average risk over {nb_avg} experiments')
 ax1.set_xlabel(r'Iteration $t$')
 ax1.set_ylabel(r'$R(\theta_t) - R^*$')
 ax1.set_xscale('log')

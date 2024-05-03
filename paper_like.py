@@ -13,17 +13,20 @@ n = 100
 sigma2 = 2
 
 lambda_ = 1e-3
+t_max_ridge = 5
 
 epochs = 10000
 intern_dim=10
 optimizer='GD'
+learning_rate = 0.001
 
-nb_avg = 1
+nb_avg = 10
 
 model_name = 'SLN' #'MLP' or 'SLN'
 
 ### Repeating experiment
 errors = np.zeros((nb_avg, epochs))
+error_ridge = np.zeros((nb_avg, epochs))
 for i in tqdm(range(nb_avg)):
     ### Data generation
     data = np.random.multivariate_normal(
@@ -40,7 +43,9 @@ for i in tqdm(range(nb_avg)):
     observations = np.array(observations) # shape (n,)
 
     ### Solving the problem
-    #w_ridge = ridge(data, observations, lambda_)
+    w_ridge = ridge_path(data, observations, nu, np.linspace(1e-1,t_max_ridge, epochs)) # (epochs, p)
+    for j in range(epochs):
+        error_ridge[i,j] = objective(data,observations,w_ridge[j,:])
 
     input_Tensor = torch.from_numpy(data).to(torch.float32)
     output_Tensor = torch.from_numpy(observations).to(torch.float32)
@@ -50,10 +55,12 @@ for i in tqdm(range(nb_avg)):
                                      intern_dim=intern_dim,
                                      output_dim=1,
                                      depth=0,
-                                     isBiased = False)
+                                     isBiased = False,
+                                    )
     elif model_name == 'SLN':
         model = SingleLayerNet(input_size=p,
-                             output_size=1)
+                             output_size=1,
+                             )
 
     errors[i,:] = train(model,
           input_Tensor,
@@ -64,12 +71,13 @@ for i in tqdm(range(nb_avg)):
           batch_size=None,
           return_vals=True,
           init_norm = None,
-          lr = 0.005)
+          lr = learning_rate)
 
 mean_error = np.mean(errors, axis=0)
+mean_error_ridge = np.mean(error_ridge, axis=0)
 
 fig1,ax1 = plt.subplots(1,1)
-ax1.plot(range(epochs), mean_error, marker='*')
+ax1.plot(range(epochs), mean_error-mean_error_ridge, marker='*', markersize=5)
 ax1.set_title(f'Average risk over {nb_avg} experiments')
 ax1.set_xlabel(r'Iteration $t$')
 ax1.set_ylabel(r'$R(\theta_t) - R^*$')

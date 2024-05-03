@@ -18,6 +18,19 @@ def objective_nonlinear(A,b,Xs):
     x = np.squeeze(x)
     return ((A@x-b)**2).sum()/(2*A.shape[0])
 
+
+def nu(t, thresh=20):
+    idxs = t<thresh
+    if len(idxs)<len(t): # condition is met
+        res = np.hstack(
+            (100/81*(np.exp(0.99*t[idxs])-1),
+             100/81*(np.exp(0.99*thresh)-1)*np.ones(len(t)-len(t[idxs]))
+             )
+        )
+    else:
+        res = 100/81*(np.exp(0.99*t)-1)
+    return res
+
 ### Ridge regression (L2 penalization)
 def ridge(A,b,lambda_):
     '''
@@ -77,6 +90,19 @@ def solve_nonlinear_ridge(Ws, b, lambda_):
     x = ridge(A,b,lambda_)
     return x
 
+def ridge_path(A,b,nu,t):
+    '''
+    A: (n,d) array
+    b: (n,) array
+    nu: func
+    t: array-like
+    '''
+    res = np.zeros((len(t), A.shape[1]))
+    lambda_ = 1/(2*nu(t))
+    for idx,time in enumerate(t):
+        res[idx,:] = ridge(A,b,lambda_[idx])
+    return res
+
 ### CustomLoss
 class MSE(nn.Module):
     def __init__(self):
@@ -114,6 +140,7 @@ class SingleLayerNet(nn.Module):
     def __init__(self, input_size, output_size):
         super(SingleLayerNet, self).__init__()
         self.layer = nn.Linear(input_size, output_size, bias=False)
+        self.layer.weight.data.uniform_(0.0, 1.0)
         
     def forward(self, x):
         return self.layer(x)

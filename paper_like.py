@@ -14,11 +14,11 @@ sigma2 = 2
 
 lambda_ = 1e-3
 
-epochs = 500
+epochs = 10000
 intern_dim=10
 optimizer='GD'
 
-nb_avg = 50
+nb_avg = 1
 
 model_name = 'SLN' #'MLP' or 'SLN'
 
@@ -64,7 +64,7 @@ for i in tqdm(range(nb_avg)):
           batch_size=None,
           return_vals=True,
           init_norm = None,
-          lr = 0.001)
+          lr = 0.005)
 
 mean_error = np.mean(errors, axis=0)
 
@@ -76,6 +76,6 @@ ax1.set_ylabel(r'$R(\theta_t) - R^*$')
 ax1.set_xscale('log')
 ax1.set_yscale('linear')
 plt.xlim(left=1)
-plt.ylim(bottom=0)
+plt.ylim(bottom=0, top = 1+mean_error.min())
 plt.grid(color='black', which="both", linestyle='-', linewidth=0.2)
 plt.savefig(f'figures/excess_risk_{model_name}_n{n}_t{epochs}_{optimizer}')

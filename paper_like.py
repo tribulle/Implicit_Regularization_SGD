@@ -15,7 +15,7 @@ sigma2 = 2
 lambda_ = 1e-3
 t_max_ridge = 5
 
-epochs = 10000
+epochs = 1000
 intern_dim=10
 optimizer='GD'
 learning_rate = 0.001
@@ -62,7 +62,7 @@ for i in tqdm(range(nb_avg)):
                              output_size=1,
                              )
 
-    errors[i,:] = train(model,
+    errors[i,:],_ = train(model,
           input_Tensor,
           output_Tensor,
           lossFct = nn.MSELoss(),

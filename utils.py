@@ -116,12 +116,16 @@ class MSE(nn.Module):
 class MultiLayerPerceptron(nn.Sequential):
     def __init__(self, input_dim, intern_dim, output_dim, depth = 2, isBiased = False):
         
-        dict = OrderedDict([("input",nn.Linear(input_dim,intern_dim, bias=isBiased))])
-        for i in range(depth):
-            dict.update({str(i) : nn.Linear(intern_dim,intern_dim,bias=isBiased)})
-        dict.update({"output" : nn.Linear(intern_dim,output_dim,bias=isBiased)})
-
-        super().__init__(dict)
+        self.depth = depth
+        if depth ==-1:
+            super(MultiLayerPerceptron, self).__init__()
+            self.layer = nn.Linear(input_dim, output_dim, bias=isBiased)
+        else:
+            dict = OrderedDict([("input",nn.Linear(input_dim,intern_dim, bias=isBiased))])
+            for i in range(depth):
+                dict.update({str(i) : nn.Linear(intern_dim,intern_dim,bias=isBiased)})
+            dict.update({"output" : nn.Linear(intern_dim,output_dim,bias=isBiased)})
+            super().__init__(dict)
 
         self.reset_init_weights_biases() # so that we do not use a default initialization
 
@@ -159,7 +163,7 @@ class GD(torch.optim.Optimizer):
 
 
 
-def train(model, input_data, output_data, lossFct = nn.MSELoss(), optimizer = 'SGD', lr=0.001, epochs = 20, batch_size=None, return_vals = False, init_norm = None, save = True, debug = False, savename='model.pt'):
+def train(model, input_data, output_data, untilConv = -1, lossFct = nn.MSELoss(), optimizer = 'SGD', lr=0.001, epochs = 20, batch_size=None, return_vals = True, init_norm = None, save = True, debug = False, savename='model.pt'):
 
     if optimizer == 'SGD':
         optimizer = torch.optim.SGD(model.parameters(), lr=lr)
@@ -173,10 +177,12 @@ def train(model, input_data, output_data, lossFct = nn.MSELoss(), optimizer = 'S
     
     if return_vals:
         errors = np.zeros(epochs)
-
+        
+    post_loss = 0
     n = len(input_data)
     if batch_size is not None:
         n_batches = n//batch_size
+
     for i in range(epochs):
         rand_idx = torch.randperm(n) # permutation of data samples
         if batch_size is not None:
@@ -198,6 +204,12 @@ def train(model, input_data, output_data, lossFct = nn.MSELoss(), optimizer = 'S
 
         optimizer.zero_grad()
         loss.backward()
+        
+        if abs(post_loss - loss.item()) <=untilConv:
+            print("Convergence")
+            break
+        post_loss = loss.item()
+        
         optimizer.step()
 
         if debug:
@@ -208,7 +220,7 @@ def train(model, input_data, output_data, lossFct = nn.MSELoss(), optimizer = 'S
         torch.save(model.state_dict(), DIRPATH+savename)
     
     if return_vals:
-        return errors
+        return errors,i
 
 ### Comparison of models
 def compare(input, output, w1, w2):

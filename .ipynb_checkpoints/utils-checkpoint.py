@@ -18,6 +18,19 @@ def objective_nonlinear(A,b,Xs):
     x = np.squeeze(x)
     return ((A@x-b)**2).sum()/(2*A.shape[0])
 
+
+def nu(t, thresh=20):
+    idxs = t<thresh
+    if len(idxs)<len(t): # condition is met
+        res = np.hstack(
+            (100/81*(np.exp(0.99*t[idxs])-1),
+             100/81*(np.exp(0.99*thresh)-1)*np.ones(len(t)-len(t[idxs]))
+             )
+        )
+    else:
+        res = 100/81*(np.exp(0.99*t)-1)
+    return res
+
 ### Ridge regression (L2 penalization)
 def ridge(A,b,lambda_):
     '''
@@ -77,6 +90,19 @@ def solve_nonlinear_ridge(Ws, b, lambda_):
     x = ridge(A,b,lambda_)
     return x
 
+def ridge_path(A,b,nu,t):
+    '''
+    A: (n,d) array
+    b: (n,) array
+    nu: func
+    t: array-like
+    '''
+    res = np.zeros((len(t), A.shape[1]))
+    lambda_ = 1/(2*nu(t))
+    for idx,time in enumerate(t):
+        res[idx,:] = ridge(A,b,lambda_[idx])
+    return res
+
 ### CustomLoss
 class MSE(nn.Module):
     def __init__(self):
@@ -90,12 +116,16 @@ class MSE(nn.Module):
 class MultiLayerPerceptron(nn.Sequential):
     def __init__(self, input_dim, intern_dim, output_dim, depth = 2, isBiased = False):
         
-        dict = OrderedDict([("input",nn.Linear(input_dim,intern_dim, bias=isBiased))])
-        for i in range(depth):
-            dict.update({str(i) : nn.Linear(intern_dim,intern_dim,bias=isBiased)})
-        dict.update({"output" : nn.Linear(intern_dim,output_dim,bias=isBiased)})
-
-        super().__init__(dict)
+        self.depth = depth
+        if depth ==-1:
+            super(MultiLayerPerceptron, self).__init__()
+            self.layer = nn.Linear(input_dim, output_dim, bias=isBiased)
+        else:
+            dict = OrderedDict([("input",nn.Linear(input_dim,intern_dim, bias=isBiased))])
+            for i in range(depth):
+                dict.update({str(i) : nn.Linear(intern_dim,intern_dim,bias=isBiased)})
+            dict.update({"output" : nn.Linear(intern_dim,output_dim,bias=isBiased)})
+            super().__init__(dict)
 
         self.reset_init_weights_biases() # so that we do not use a default initialization
 
@@ -114,6 +144,7 @@ class SingleLayerNet(nn.Module):
     def __init__(self, input_size, output_size):
         super(SingleLayerNet, self).__init__()
         self.layer = nn.Linear(input_size, output_size, bias=False)
+        self.layer.weight.data.uniform_(0.0, 1.0)
         
     def forward(self, x):
         return self.layer(x)
@@ -132,7 +163,7 @@ class GD(torch.optim.Optimizer):
 
 
 
-def train(model, input_data, output_data, lossFct = nn.MSELoss(), optimizer = 'SGD', lr=0.001, epochs = 20, batch_size=None, return_vals = False, init_norm = None, save = True, debug = False, savename='model.pt'):
+def train(model, input_data, output_data, untilConv = -1, lossFct = nn.MSELoss(), optimizer = 'SGD', lr=0.001, epochs = 20, batch_size=None, return_vals = True, init_norm = None, save = True, debug = False, savename='model.pt'):
 
     if optimizer == 'SGD':
         optimizer = torch.optim.SGD(model.parameters(), lr=lr)
@@ -146,10 +177,12 @@ def train(model, input_data, output_data, lossFct = nn.MSELoss(), optimizer = 'S
     
     if return_vals:
         errors = np.zeros(epochs)
-
+        
+    post_loss = 0
     n = len(input_data)
     if batch_size is not None:
         n_batches = n//batch_size
+
     for i in range(epochs):
         rand_idx = torch.randperm(n) # permutation of data samples
         if batch_size is not None:
@@ -171,6 +204,12 @@ def train(model, input_data, output_data, lossFct = nn.MSELoss(), optimizer = 'S
 
         optimizer.zero_grad()
         loss.backward()
+        
+        if abs(post_loss - loss.item()) <=untilConv:
+            print("Convergence")
+            break
+        post_loss = loss.item()
+        
         optimizer.step()
 
         if debug:
@@ -181,7 +220,7 @@ def train(model, input_data, output_data, lossFct = nn.MSELoss(), optimizer = 'S
         torch.save(model.state_dict(), DIRPATH+savename)
     
     if return_vals:
-        return errors
+        return errors,i
 
 ### Comparison of models
 def compare(input, output, w1, w2):

@@ -126,12 +126,16 @@ def margin(x,y,theta):
         
 ### MLP
 class MultiLayerPerceptron(nn.Sequential):
-    def __init__(self, input_dim, intern_dim, output_dim, depth = 2, isBiased = False):
+    def __init__(self, input_dim, intern_dim, output_dim, depth = 2, isBiased = False, init='uniform'):
         
         self.depth = depth
         if depth ==-1:
             super(MultiLayerPerceptron, self).__init__()
             self.layer = nn.Linear(input_dim, output_dim, bias=isBiased)
+            if init == 'uniform':
+                self.layer.weight.data.uniform_(0.0, 1.0)
+            if init == 'zero':
+                self.layer.weight.data.fill_(0)
         else:
             dict = OrderedDict([("input",nn.Linear(input_dim,intern_dim, bias=isBiased))])
             for i in range(depth):
@@ -153,10 +157,13 @@ class MultiLayerPerceptron(nn.Sequential):
                 layer.bias.data.uniform_(-stdv, stdv)
 
 class SingleLayerNet(nn.Module):
-    def __init__(self, input_size, output_size):
+    def __init__(self, input_size, output_size, init='uniform'):
         super(SingleLayerNet, self).__init__()
         self.layer = nn.Linear(input_size, output_size, bias=False)
-        self.layer.weight.data.uniform_(0.0, 1.0)
+        if init == 'uniform':
+            self.layer.weight.data.uniform_(0.0, 1.0)
+        if init == 'zero':
+            self.layer.weight.data.fill_(0)
         
     def forward(self, x):
         return self.layer(x)

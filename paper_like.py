@@ -43,7 +43,7 @@ for i in tqdm(range(nb_avg)):
     observations = np.array(observations) # shape (n,)
 
     ### Solving the problem
-    w_ridge = ridge_path(data, observations, nu, np.linspace(1e-1,t_max_ridge, epochs)) # (epochs, p)
+    w_ridge = ridge_path(data, observations, nu_regression, np.linspace(1e-1,t_max_ridge, epochs)) # (epochs, p)
     for j in range(epochs):
         error_ridge[i,j] = objective(data,observations,w_ridge[j,:])
 

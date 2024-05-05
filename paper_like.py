@@ -69,7 +69,7 @@ for i in tqdm(range(nb_avg)):
           optimizer=optimizer,
           epochs=epochs,
           batch_size=None,
-          return_vals=True,
+          return_vals='error',
           init_norm = None,
           lr = learning_rate)
 

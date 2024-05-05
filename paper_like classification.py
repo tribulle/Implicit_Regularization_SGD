@@ -47,6 +47,7 @@ for i in tqdm(range(nb_avg)):
     ### Solving the problem
     w_reg = None # (epochs, p)
     ws_reg_norm = np.linalg.norm(w_reg, axis=-1)
+    
     for j in range(epochs):
         margin_reg[i,j] = margin(data,observations,w_reg[j,:])
 

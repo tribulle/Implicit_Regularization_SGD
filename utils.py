@@ -59,10 +59,10 @@ def ridge(A,b,lambda_):
     if isinstance(lambda_, numbers.Number): # real number
         if d<=n: # underparametrized
             inv = np.linalg.inv(2/n*A.T@A+2*lambda_*np.eye(d))
-            res = inv@(A.T)@b/n
+            res = inv@(A.T)@b*2/n
         else: # overparametrized
             inv = np.linalg.inv(2/n*A@(A.T)+2*lambda_*np.eye(n))
-            res = A.T@inv@b/n
+            res = A.T@inv@b*2/n
     else: # multi-dim
         raise NotImplementedError('Penalization per dimension not yet implemented')
     return res

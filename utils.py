@@ -4,6 +4,7 @@ from collections import OrderedDict
 import torch
 import torch.nn as nn
 import math
+from tqdm import tqdm
 
 DIRPATH = 'models/'
 
@@ -274,3 +275,34 @@ def compare(input, output, w1, w2):
     print('Model 2:')
     print(f'   - objective: {res2:.3e}')
     print(f'   - weights norm: {np.linalg.norm(w2):.2f}')
+
+def Generate_data(p = 100, n = 500, sigma2 = 2):
+        ### Data generation
+    data = np.random.multivariate_normal(
+        np.zeros(p),
+        np.ones((p,p)),
+        size=n) # shape (n,p)
+
+    w_true = np.ones(p)*1/np.sqrt(p)
+
+    observations = [np.random.normal(
+        np.dot(w_true, x),
+        sigma2)
+        for x in data]
+    observations = np.array(observations) # shape (n,)
+
+    return data, observations
+
+def extract_weight(MLP):
+    sol_MLP = torch.eye(d)
+    for layer in MLP.children():
+        sol_MLP = sol_MLP@torch.transpose(layer.weight,0,1)
+    return sol_MLP.numpy()
+
+def Ridge_Lambda_Compute(A,b,LambdaArray):
+    error = np.zeros((LambdaArray.shape[0]))
+    for i in range(LambdaArray.shape[0]):
+        res = ridge(A,b,LambdaArray[i])
+        error[i] = objective(A,b,res)
+    ridgeErrorArray = np.hstack((LambdaArray[:,np.newaxis],error[:,np.newaxis]))
+    return ridgeErrorArray

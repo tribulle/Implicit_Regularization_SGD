@@ -6,7 +6,7 @@ import torch
 from utils import *
 
 ### Parameters
-COMPUTE_DATA_PLOT = True
+COMPUTE_DATA_PLOT = False
 
 d = 200
 sigma2 = 1
@@ -28,7 +28,7 @@ SAVE_DATA_PLOT = 'data/data_plot.npy'
 SAVE_DIR_FIG = 'figures/'
 
 # Plots
-W_LABELS = [r'$w[i]=1$', r'$w[i]=i^{-1}$', r'$w[i]=i^{-10}$']
+W_LABELS = [r'$w^*[i]=1$', r'$w^*[i]=i^{-1}$', r'$w^*[i]=i^{-10}$']
 H_LABELS = [r'$\lambda_i=i^{-1}$', r'$\lambda_i=i^{-2}$']
 
 if COMPUTE_DATA_PLOT:
@@ -89,7 +89,7 @@ else:
 
 for i, which_h in enumerate(all_which_h):
     for j,which_w in enumerate(all_which_w):
-        plt.plot(n_ridge, y_plot[i,j,:], label=W_LABELS[j])
+        plt.plot(n_sgd, y_plot[i,j,:], label=W_LABELS[j])
     plt.grid(color='black', which="both", linestyle='--', linewidth=0.2)
     plt.legend()
     plt.xlabel(r'$N_{SGD}$')

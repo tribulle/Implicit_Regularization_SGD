@@ -96,8 +96,8 @@ for i in tqdm(range(nb_avg)):
 if GENERATE_RIDGE:
     np.save(SAVE_RIDGE_ITERATE, w_ridge)
     np.save(SAVE_DIR_RIDGE+SAVE_OBSERVATIONS, observations)
-    np.save(SAVE_DATA, data)
+    np.save(SAVE_DIR_RIDGE+SAVE_DATA, data)
 if GENERATE_SGD:
     np.save(SAVE_SGD_ITERATE, w_sgd)
-    np.save(SAVE_DIR_RIDGE+SAVE_OBSERVATIONS, observations)
-    np.save(SAVE_DATA, data)
+    np.save(SAVE_DIR_SGD+SAVE_OBSERVATIONS, observations)
+    np.save(SAVE_DIR_SGD+SAVE_DATA, data)

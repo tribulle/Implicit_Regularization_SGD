@@ -1,5 +1,4 @@
 import numpy as np
-import matplotlib.pyplot as plt
 from tqdm import tqdm
 import torch
 
@@ -23,10 +22,10 @@ lambda_ = 1e-2
 intern_dim = 10
 depth = -1 # Single Layer
 optimizer = 'SGD'
-learning_rate = 0.001
+learning_rate = 0.01
 
 which_h = 1 # 1 or 2 -> i**(-...)
-which_w = 0 # 0, 1 or 10 -> i**(-...)
+which_w = 1 # 0, 1 or 10 -> i**(-...)
 
 GENERATE_RIDGE = True
 GENERATE_SGD = True
@@ -34,10 +33,9 @@ GENERATE_SGD = True
 # saving paths
 SAVE_DIR_SGD = 'data/SGD/'
 SAVE_DIR_RIDGE = 'data/Ridge/'
-SAVE_RIDGE_ITERATE = SAVE_DIR_RIDGE + f'iterates_ridge_H{which_h}_w{which_w}.npy'
-SAVE_SGD_ITERATE = SAVE_DIR_SGD + f'iterates_sgd_H{which_h}_w{which_w}.npy'
-SAVE_OBSERVATIONS = 'observations.npy'
-SAVE_DATA = 'data.npy'
+filename = f'iterates_H{which_h}_w{which_w}.npy'
+SAVE_RIDGE_ITERATE = SAVE_DIR_RIDGE + filename
+SAVE_SGD_ITERATE = SAVE_DIR_SGD + filename
 
 
 ### Begin experiment
@@ -48,12 +46,12 @@ w_sgd = np.zeros((nb_avg, N_max_sgd, d))
 # Averaging results
 for i in tqdm(range(nb_avg)):
     ### Data generation
-    w_true = 1/(np.arange(1,d+1)**which_w) # true parameter
-    H = np.diag(1/(np.arange(1,d+1)**which_h))
+    w_true = np.float_power(np.arange(1,d+1), -which_w) # true parameter
+    H = np.diag(np.float_power(np.arange(1,d+1), -which_h))
     data = np.random.multivariate_normal(
         np.zeros(d),
         H,
-        size=N_max_sgd) # shape (n,d)    
+        size=N_max_ridge) # shape (N_max_ridge,d)    
 
     observations = [np.random.normal(
         np.dot(w_true, x),
@@ -95,9 +93,5 @@ for i in tqdm(range(nb_avg)):
 # Save results
 if GENERATE_RIDGE:
     np.save(SAVE_RIDGE_ITERATE, w_ridge)
-    np.save(SAVE_DIR_RIDGE+SAVE_OBSERVATIONS, observations)
-    np.save(SAVE_DIR_RIDGE+SAVE_DATA, data)
 if GENERATE_SGD:
     np.save(SAVE_SGD_ITERATE, w_sgd)
-    np.save(SAVE_DIR_SGD+SAVE_OBSERVATIONS, observations)
-    np.save(SAVE_DIR_SGD+SAVE_DATA, data)

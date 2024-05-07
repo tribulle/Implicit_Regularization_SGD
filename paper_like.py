@@ -15,12 +15,12 @@ sigma2 = 2
 lambda_ = 1e-3
 t_max_ridge = 5
 
-epochs = 1000
+epochs = 7000
 intern_dim=10
 optimizer='GD'
-learning_rate = 0.001
+learning_rate = 0.005
 
-nb_avg = 10
+nb_avg = 1
 
 model_name = 'SLN' #'MLP' or 'SLN'
 
@@ -60,7 +60,7 @@ for i in tqdm(range(nb_avg)):
     elif model_name == 'SLN':
         model = SingleLayerNet(input_size=p,
                              output_size=1,
-                             )
+                             init='zero')
 
     errors[i,:],_ = train(model,
           input_Tensor,

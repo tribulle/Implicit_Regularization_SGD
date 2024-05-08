@@ -182,8 +182,8 @@ class GD(torch.optim.Optimizer):
                     p.data -= group['lr'] * grad
 
 
-def get_param(model, d):
-    w = torch.eye(d)
+def get_param(model, d, device=torch.device("cpu")):
+    w = torch.eye(d, device=device)
     for layer in model.children():
         w = w@torch.transpose(layer.weight,0,1)
     return w.squeeze_()
@@ -229,7 +229,7 @@ def train(model, input_data, output_data, untilConv = -1, lossFct = nn.MSELoss()
         
         if return_ws or return_vals=='margin':
             w = get_param(model,d).detach()
-            ws[i,:] = w
+            ws[i,:] = w.cpu()
 
         if return_vals == 'error':
             vals[i] = loss.item()

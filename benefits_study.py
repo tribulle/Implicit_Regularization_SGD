@@ -44,7 +44,7 @@ if COMPUTE_DATA_PLOT:
 
             ### Load weights
             w_ridge = np.load(SAVE_RIDGE_ITERATE) # (nb_avg, len(n_ridge), d)
-            w_sgd = np.load(SAVE_SGD_ITERATE) # (nb_avg, N_max_sgd, d)
+            w_sgd = np.load(SAVE_SGD_ITERATE) # (nb_avg, len(n_sgd),N_max_sgd, d)
 
             ### Generate new data (from same distribution)
             w_true = np.float_power(np.arange(1,d+1), -which_w) # true parameter
@@ -69,7 +69,7 @@ if COMPUTE_DATA_PLOT:
             sgd_errors = np.zeros((nb_avg, len(n_sgd)))
             for k1 in range(nb_avg):
                 for k2,n in enumerate(n_sgd):
-                    w = np.mean(w_sgd[k1,n//2:n,:], axis=0)
+                    w = np.mean(w_sgd[k1,k2,n//2:n,:], axis=0)
                     sgd_errors[k1,k2] = objective(data, observations, w)
             sgd_risk = np.mean(sgd_errors, axis=0)
 

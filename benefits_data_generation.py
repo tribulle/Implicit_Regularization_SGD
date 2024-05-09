@@ -10,12 +10,12 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 ### Parameters
 # code parameters
-d = 100
+d = 200
 sigma2 = 1
 nb_avg = 20
 
 N_max_ridge = 6000
-N_max_sgd = 1000
+N_max_sgd = 2000
 n_ridge = np.floor(np.linspace(d,N_max_ridge,100)).astype(dtype=np.uint16)
 n_sgd = np.floor(np.linspace(d,N_max_sgd,20)).astype(dtype=np.uint16)
 
@@ -28,23 +28,23 @@ intern_dim = 10
 depth = -1 # Single Layer
 optimizer = 'SGD'
 learning_rate = 0.01*np.ones(len(n_sgd))
-learning_rates = np.logspace(-3,0,n_fine_tune_params)
+learning_rates = np.logspace(-5,0,n_fine_tune_params)
 
 which_h = 1 # 1 or 2 -> i**(-...)
-which_w = 0 # 0, 1 or 10 -> i**(-...)
+which_w = 10 # 0, 1 or 10 -> i**(-...)
 
 GENERATE_RIDGE = True
 GENERATE_SGD = False
-FINE_TUNE = False
+FINE_TUNE = True
 
 # saving paths
 SAVE_DIR_SGD = 'data/SGD/'
 SAVE_DIR_RIDGE = 'data/Ridge/'
-filename_iterates = f'iterates_H{which_h}_w{which_w}.npy'
+filename_iterates = f'iterates_H{which_h}_w{which_w}_d{d}.npy'
 SAVE_RIDGE_ITERATE = SAVE_DIR_RIDGE + filename_iterates
 SAVE_SGD_ITERATE = SAVE_DIR_SGD + filename_iterates
-SAVE_RIDGE_LAMBDA = SAVE_DIR_RIDGE + f'lambda_H{which_h}_w{which_w}.npy'
-SAVE_SGD_GAMMA = SAVE_DIR_SGD + f'gamma_H{which_h}_w{which_w}.npy'
+SAVE_RIDGE_LAMBDA = SAVE_DIR_RIDGE + f'lambda_H{which_h}_w{which_w}_d{d}.npy'
+SAVE_SGD_GAMMA = SAVE_DIR_SGD + f'gamma_H{which_h}_w{which_w}_d{d}.npy'
 
 ### Begin experiment
 # Initialization
@@ -138,7 +138,7 @@ for i in tqdm(range(nb_avg)):
                         best_obj, best_w, best_idx = obj, w, k
                 w_sgd[i,j,:] = best_w
                 learning_rate[j] = learning_rates[best_idx]
-            np.save(SAVE_SGD_GAMMA, learning_rate)
+            np.save(SAVE_SGD_GAMMA, np.vstack((learning_rate, n_sgd)))
             print('\nDone')
         else:
             for j,n in enumerate(n_sgd):

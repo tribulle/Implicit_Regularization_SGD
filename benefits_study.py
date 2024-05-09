@@ -8,24 +8,29 @@ from utils import *
 ### Parameters
 COMPUTE_DATA_PLOT = True
 
-d = 100
+d = 200
 sigma2 = 1
 nb_avg = 20
 
 N_samples = 5000
 
 N_max_ridge = 6000
-N_max_sgd = 1000
+N_max_sgd = 2000
 n_ridge = np.floor(np.linspace(d,N_max_ridge,100)).astype(dtype=np.uint16)
 n_sgd = np.floor(np.linspace(d,N_max_sgd,20)).astype(dtype=np.uint16)
 
 all_which_h = [1] # 1 or 2 -> i**(-...)
 all_which_w = [0,1,10] # 0, 1 or 10 -> i**(-...)
 
+OUTLIER_DETECTION = True
+threshold_obj = 100 #sigma2*2
+
 # saving paths
 SAVE_DIR_SGD = 'data/SGD/'
 SAVE_DIR_RIDGE = 'data/Ridge/'
-SAVE_DATA_PLOT = 'data/data_plot.npy'
+SAVE_DATA_PLOT_N = 'data/data_plot_n.npy'
+SAVE_DATA_PLOT_SGD = 'data/data_plot_sgd.npy'
+SAVE_DATA_PLOT_RIDGE = 'data/data_plot_ridge.npy'
 SAVE_DIR_FIG = 'figures/'
 
 # Plots
@@ -35,11 +40,13 @@ H_LABELS = [r'$\lambda_i=i^{-1}$', r'$\lambda_i=i^{-2}$']
 if COMPUTE_DATA_PLOT:
     ### Study
     y_plot = np.zeros((len(all_which_h), len(all_which_w), len(n_sgd))) # (h,w, n_sgd)
+    sgd_risks = np.zeros((len(all_which_h), len(all_which_w), len(n_sgd)))
+    ridge_risks = np.zeros((len(all_which_h), len(all_which_w), len(n_ridge)))
     # y_plot[h,w, n] contains the value n_ridge s.t loss(ridge(n_ridge)) ~= loss(sgd(n_sgd[n]))
     for i,which_h in enumerate(all_which_h):
         for j,which_w in enumerate(all_which_w):
             # Get weights
-            filename = f'iterates_H{which_h}_w{which_w}.npy'
+            filename = f'iterates_H{which_h}_w{which_w}_d{d}.npy'
             SAVE_RIDGE_ITERATE = SAVE_DIR_RIDGE + filename
             SAVE_SGD_ITERATE = SAVE_DIR_SGD + filename
 
@@ -62,39 +69,69 @@ if COMPUTE_DATA_PLOT:
 
             ### Compute variables of interest
             ridge_errors = np.zeros((nb_avg, len(n_ridge)))
+            sgd_errors = np.zeros((nb_avg, len(n_sgd)))
             for k1 in range(nb_avg):
                 for k2,n in enumerate(n_ridge):
                     ridge_errors[k1,k2] = objective(data, observations, w_ridge[k1,k2,:])
-            ridge_risk = np.mean(ridge_errors, axis=0)
-
-            sgd_errors = np.zeros((nb_avg, len(n_sgd)))
-            for k1 in range(nb_avg):
                 for k2,n in enumerate(n_sgd):
                     sgd_errors[k1,k2] = objective(data, observations, w_sgd[k1,k2,:])
-            sgd_risk = np.mean(sgd_errors, axis=0)
+            
+            # Outlier detection
+            if OUTLIER_DETECTION:
+                mask_ridge = np.abs(ridge_errors) < threshold_obj
+                mask_sgd = np.abs(sgd_errors) < threshold_obj
+                n_out_ridge = mask_ridge.size-mask_ridge.sum()
+                n_out_sgd = mask_sgd.size-mask_sgd.sum()
+                sgd_errors[mask_sgd] = 100
+                ridge_errors[mask_ridge] = 100
+                
+                print(f'{n_out_ridge+n_out_sgd} outliers for H{which_h}_w{which_w} ' +
+                      f'(Ridge: {n_out_ridge}, SGD: {n_out_sgd})'
+                      )
+
+            sgd_risks[i, j,:] = np.mean(sgd_errors, axis=0)
+            ridge_risks[i, j,:] = np.mean(ridge_errors, axis=0)
+
+            #sgd_risks[sgd_risks > threshold_obj] = None
 
             # for each n_sgd, search minimal n_ridge with same risk
             for k,n in enumerate(n_sgd): 
-                valid = n_ridge[np.where(ridge_risk<sgd_risk[k])] # ridge better than sgd
+                valid = n_ridge[np.where(ridge_risks[i, j,:]<sgd_risks[i, j,k])] # ridge better than sgd
                 if len(valid) != 0:
                     y_plot[i,j,k] = valid[0] # smaller n_ridge better than sgd
                 else:
-                    y_plot[i,j,k] = None #n_ridge[-1] # default: all ridge worse than sgd
+                    y_plot[i,j,k] = -1 #n_ridge[-1] # default: all ridge worse than sgd
 
-    np.save(SAVE_DATA_PLOT, y_plot)
+    np.save(SAVE_DATA_PLOT_N, y_plot)
+    np.save(SAVE_DATA_PLOT_SGD, sgd_risks)
+    np.save(SAVE_DATA_PLOT_RIDGE, ridge_risks)
     print('Computation done')
 else:
-    y_plot = np.load(SAVE_DATA_PLOT)
+    y_plot = np.load(SAVE_DATA_PLOT_N)
+    sgd_risks = np.load(SAVE_DATA_PLOT_SGD)
+    ridge_risks = np.load(SAVE_DATA_PLOT_RIDGE)
     print('Data loaded')
 
+
 for i, which_h in enumerate(all_which_h):
+    fig,axs = plt.subplots(1,2)
     for j,which_w in enumerate(all_which_w):
-        plt.plot(n_sgd, y_plot[i,j,:], label=W_LABELS[j])
-    plt.grid(color='black', which="both", linestyle='--', linewidth=0.2)
-    plt.legend()
-    plt.xlabel(r'$N_{SGD}$')
-    plt.ylabel(r'$N_{Ridge}$')
-    plt.title('SGD vs Ridge ; H:'+H_LABELS[i])
+        axs[0].plot(n_sgd, y_plot[i,j,:], label=W_LABELS[j])
+        axs[1].plot(n_sgd, sgd_risks[i, j,:], label='SGD - '+W_LABELS[j])
+        axs[1].plot(n_ridge, ridge_risks[i, j,:], linestyle='--', label='Ridge - '+W_LABELS[j])
+    axs[0].grid(color='black', which="both", linestyle='--', linewidth=0.2)
+    axs[0].legend()
+    axs[0].set_xlabel(r'$N_{SGD}$')
+    axs[0].set_ylabel(r'$N_{Ridge}$')
+
+    axs[1].grid(color='black', which="both", linestyle='--', linewidth=0.2)
+    axs[1].legend()
+    axs[1].set_yscale('log')
+    axs[1].set_ylim(top=10)
+    axs[1].set_xlabel('N')
+    axs[1].set_ylabel('Population Risk')
+
+    plt.suptitle('SGD vs Ridge ; H:'+H_LABELS[i])
     plt.savefig(SAVE_DIR_FIG+f'benefits_H{which_h}')
     plt.show()
     

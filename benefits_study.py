@@ -23,7 +23,7 @@ all_which_h = [1] # 1 or 2 -> i**(-...)
 all_which_w = [0,1,10] # 0, 1 or 10 -> i**(-...)
 
 OUTLIER_DETECTION = True
-threshold_obj = 100 #sigma2*2
+threshold_obj = sigma2*2
 
 # saving paths
 SAVE_DIR_SGD = 'data/SGD/'
@@ -78,19 +78,18 @@ if COMPUTE_DATA_PLOT:
             
             # Outlier detection
             if OUTLIER_DETECTION:
-                mask_ridge = np.abs(ridge_errors) < threshold_obj
-                mask_sgd = np.abs(sgd_errors) < threshold_obj
-                n_out_ridge = mask_ridge.size-mask_ridge.sum()
-                n_out_sgd = mask_sgd.size-mask_sgd.sum()
-                sgd_errors[mask_sgd] = 100
-                ridge_errors[mask_ridge] = 100
+                n_out_ridge = (ridge_errors>threshold_obj).sum()
+                n_out_sgd = (sgd_errors > threshold_obj).sum()
+
+                sgd_risks[i, j,:] = np.mean(sgd_errors, axis=0, where=sgd_errors<threshold_obj)
+                ridge_risks[i, j,:] = np.mean(ridge_errors, axis=0, where=ridge_errors<threshold_obj)
                 
                 print(f'{n_out_ridge+n_out_sgd} outliers for H{which_h}_w{which_w} ' +
                       f'(Ridge: {n_out_ridge}, SGD: {n_out_sgd})'
                       )
-
-            sgd_risks[i, j,:] = np.mean(sgd_errors, axis=0)
-            ridge_risks[i, j,:] = np.mean(ridge_errors, axis=0)
+            else:
+                sgd_risks[i, j,:] = np.mean(sgd_errors, axis=0)
+                ridge_risks[i, j,:] = np.mean(ridge_errors, axis=0)
 
             #sgd_risks[sgd_risks > threshold_obj] = None
 
@@ -127,7 +126,6 @@ for i, which_h in enumerate(all_which_h):
     axs[1].grid(color='black', which="both", linestyle='--', linewidth=0.2)
     axs[1].legend()
     axs[1].set_yscale('log')
-    axs[1].set_ylim(top=10)
     axs[1].set_xlabel('N')
     axs[1].set_ylabel('Population Risk')
 

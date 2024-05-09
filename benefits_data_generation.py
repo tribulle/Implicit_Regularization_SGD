@@ -22,13 +22,13 @@ n_sgd = np.floor(np.linspace(d,N_max_sgd,20)).astype(dtype=np.uint16)
 n_fine_tune_params = 10
 
 lambda_ = 1e-2*np.ones(len(n_ridge))
-lambdas_ = np.logspace(-8,-2,n_fine_tune_params, base=10.0)
+lambdas_ = np.logspace(-5,-1,n_fine_tune_params, base=10.0)
 
 intern_dim = 10
 depth = -1 # Single Layer
 optimizer = 'SGD'
 learning_rate = 0.01*np.ones(len(n_sgd))
-learning_rates = np.logspace(-5,0,n_fine_tune_params)
+learning_rates = np.logspace(-6,-2,n_fine_tune_params)
 
 which_h = 1 # 1 or 2 -> i**(-...)
 which_w = 10 # 0, 1 or 10 -> i**(-...)

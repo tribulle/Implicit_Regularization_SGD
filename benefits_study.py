@@ -99,7 +99,7 @@ if COMPUTE_DATA_PLOT:
                 if len(valid) != 0:
                     y_plot[i,j,k] = valid[0] # smaller n_ridge better than sgd
                 else:
-                    y_plot[i,j,k] = -1 #n_ridge[-1] # default: all ridge worse than sgd
+                    y_plot[i,j,k] = n_ridge[-1] #n_ridge[-1] # default: all ridge worse than sgd
 
     np.save(SAVE_DATA_PLOT_N, y_plot)
     np.save(SAVE_DATA_PLOT_SGD, sgd_risks)

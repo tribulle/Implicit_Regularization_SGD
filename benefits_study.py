@@ -6,17 +6,18 @@ import torch
 from utils import *
 
 ### Parameters
-COMPUTE_DATA_PLOT = False
+COMPUTE_DATA_PLOT = True
 
-d = 200
+d = 100
 sigma2 = 1
 nb_avg = 20
 
-N_samples = 6000 # to approximate E in Risk
+N_samples = 5000
+
 N_max_ridge = 6000
-N_max_sgd = 2000
+N_max_sgd = 1000
 n_ridge = np.floor(np.linspace(d,N_max_ridge,100)).astype(dtype=np.uint16)
-n_sgd = np.floor(np.linspace(d,N_max_sgd,100)).astype(dtype=np.uint16)
+n_sgd = np.floor(np.linspace(d,N_max_sgd,20)).astype(dtype=np.uint16)
 
 all_which_h = [1] # 1 or 2 -> i**(-...)
 all_which_w = [0,1,10] # 0, 1 or 10 -> i**(-...)
@@ -44,7 +45,7 @@ if COMPUTE_DATA_PLOT:
 
             ### Load weights
             w_ridge = np.load(SAVE_RIDGE_ITERATE) # (nb_avg, len(n_ridge), d)
-            w_sgd = np.load(SAVE_SGD_ITERATE) # (nb_avg, len(n_sgd),N_max_sgd, d)
+            w_sgd = np.load(SAVE_SGD_ITERATE) # (nb_avg, len(n_sgd), d)
 
             ### Generate new data (from same distribution)
             w_true = np.float_power(np.arange(1,d+1), -which_w) # true parameter
@@ -69,8 +70,7 @@ if COMPUTE_DATA_PLOT:
             sgd_errors = np.zeros((nb_avg, len(n_sgd)))
             for k1 in range(nb_avg):
                 for k2,n in enumerate(n_sgd):
-                    w = np.mean(w_sgd[k1,k2,n//2:n,:], axis=0)
-                    sgd_errors[k1,k2] = objective(data, observations, w)
+                    sgd_errors[k1,k2] = objective(data, observations, w_sgd[k1,k2,:])
             sgd_risk = np.mean(sgd_errors, axis=0)
 
             # for each n_sgd, search minimal n_ridge with same risk
@@ -79,7 +79,7 @@ if COMPUTE_DATA_PLOT:
                 if len(valid) != 0:
                     y_plot[i,j,k] = valid[0] # smaller n_ridge better than sgd
                 else:
-                    y_plot[i,j,k] = n_ridge[-1] # default: all ridge worse than sgd
+                    y_plot[i,j,k] = None #n_ridge[-1] # default: all ridge worse than sgd
 
     np.save(SAVE_DATA_PLOT, y_plot)
     print('Computation done')

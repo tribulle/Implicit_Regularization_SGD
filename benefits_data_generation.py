@@ -1,11 +1,12 @@
 import numpy as np
 from tqdm import tqdm
 import torch
+import warnings
 
 from utils import *
 
-np.random.seed(42)
-torch.manual_seed(42)
+np.random.seed(0)
+torch.manual_seed(0)
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 ### Parameters
@@ -21,21 +22,22 @@ n_sgd = np.floor(np.linspace(d,N_max_sgd,20)).astype(dtype=np.uint16)
 
 n_fine_tune_params = 10
 
-lambda_ = 1e-2*np.ones(len(n_ridge))
-lambdas_ = np.logspace(-8,-1,n_fine_tune_params, base=10.0)
+lambda_ = 1e-5*np.ones(len(n_ridge))
+lambdas_ = np.logspace(-5,1,n_fine_tune_params, base=10.0)
 
 intern_dim = 10
 depth = -1 # Single Layer
 optimizer = 'SGD'
-learning_rate = 0.01*np.ones(len(n_sgd))
+learning_rate = 0.001*np.ones(len(n_sgd))
 learning_rates = np.logspace(-6,-2,n_fine_tune_params)
 
 which_h = 1 # 1 or 2 -> i**(-...)
-which_w = 0 # 0, 1 or 10 -> i**(-...)
+which_w = 10 # 0, 1 or 10 -> i**(-...)
 
 GENERATE_RIDGE = True
 GENERATE_SGD = False
-FINE_TUNE = True
+FINE_TUNE = False
+USE_SAVED_PARAMS = False
 
 # saving paths
 SAVE_DIR_SGD = 'data/SGD/'
@@ -51,18 +53,20 @@ SAVE_SGD_GAMMA = SAVE_DIR_SGD + f'gamma_H{which_h}_w{which_w}_d{d}.npy'
 w_ridge = np.zeros((nb_avg, len(n_ridge), d))
 w_sgd = np.zeros((nb_avg, len(n_sgd), d))
 
-if not FINE_TUNE: # find best coeffs
+if not FINE_TUNE and USE_SAVED_PARAMS: # load best coeffs
     try:
         load = np.load(SAVE_SGD_GAMMA)
         learning_rate = load[0]
-        assert (n_sgd == load[1]).all(), 'Learning rates fine-tuned for different values of n_sgd'
+        if (n_sgd == load[1]).all():
+            warnings.warn('Learning rates fine-tuned for different values of n_sgd', UserWarning)
     except FileNotFoundError:
         print(f'No learning rates found - using default lr={learning_rate[0]}')
 
     try:
         load = np.load(SAVE_RIDGE_LAMBDA)
         lambda_ = load[0]
-        assert (n_ridge == load[1]).all(), 'Lambda values fine-tuned for different values of n_ridge'
+        if (n_ridge == load[1]).all():
+            warnings.warn('Lambda values fine-tuned for different values of n_ridge', UserWarning)
     except FileNotFoundError:
         print(f'No lambdas found - using default lambda={lambda_[0]}')
 
@@ -78,7 +82,7 @@ for i in tqdm(range(nb_avg)):
 
     observations = [np.random.normal(
         np.dot(w_true, x),
-        sigma2)
+        np.sqrt(sigma2))
         for x in data]
     observations = np.array(observations) # shape (n,)
 

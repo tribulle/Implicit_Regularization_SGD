@@ -5,6 +5,9 @@ import torch
 
 from utils import *
 
+np.random.seed(9)
+torch.manual_seed(9)
+
 ### Parameters
 COMPUTE_DATA_PLOT = True
 
@@ -36,6 +39,7 @@ SAVE_DIR_FIG = 'figures/'
 # Plots
 W_LABELS = [r'$w^*[i]=1$', r'$w^*[i]=i^{-1}$', r'$w^*[i]=i^{-10}$']
 H_LABELS = [r'$\lambda_i=i^{-1}$', r'$\lambda_i=i^{-2}$']
+COLORS = ['tab:blue', 'tab:orange', 'tab:green']
 
 if COMPUTE_DATA_PLOT:
     ### Study
@@ -63,7 +67,7 @@ if COMPUTE_DATA_PLOT:
                 size=N_samples) # shape (n,d)    
             observations = [np.random.normal(
                 np.dot(w_true, x),
-                sigma2)
+                np.sqrt(sigma2))
                 for x in data]
             observations = np.array(observations) # shape (n,)
 
@@ -113,11 +117,11 @@ else:
 
 
 for i, which_h in enumerate(all_which_h):
-    fig,axs = plt.subplots(1,2)
+    fig,axs = plt.subplots(1,2, figsize=(16,8))
     for j,which_w in enumerate(all_which_w):
-        axs[0].plot(n_sgd, y_plot[i,j,:], label=W_LABELS[j])
-        axs[1].plot(n_sgd, sgd_risks[i, j,:], label='SGD - '+W_LABELS[j])
-        axs[1].plot(n_ridge, ridge_risks[i, j,:], linestyle='--', label='Ridge - '+W_LABELS[j])
+        axs[0].plot(n_sgd, y_plot[i,j,:], color=COLORS[j], label=W_LABELS[j])
+        axs[1].plot(n_sgd, sgd_risks[i, j,:], color=COLORS[j], label='SGD - '+W_LABELS[j])
+        axs[1].plot(n_ridge, ridge_risks[i, j,:], linestyle='--', color=COLORS[j], label='Ridge - '+W_LABELS[j])
     axs[0].grid(color='black', which="both", linestyle='--', linewidth=0.2)
     axs[0].legend()
     axs[0].set_xlabel(r'$N_{SGD}$')

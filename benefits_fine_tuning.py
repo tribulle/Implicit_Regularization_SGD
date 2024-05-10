@@ -17,16 +17,16 @@ nb_avg = 10
 
 N_max_ridge = 6000
 N_max_sgd = 2000
-train_test_split = 0.8
+train_test_split = 0.8 # 80% to train, 20% to evaluate
 n_train_ridge = int(train_test_split*N_max_ridge)
 n_train_sgd = int(train_test_split*N_max_sgd)
 
 n_ridge = np.floor(np.linspace(d,N_max_ridge,100)).astype(dtype=np.uint16)
 n_sgd = np.floor(np.linspace(d,N_max_sgd,20)).astype(dtype=np.uint16)
 
-n_fine_tune_params = 10
+n_fine_tune_params = 10 # nb of hyperparameters tested
 
-lambdas_ = np.logspace(-5,0,n_fine_tune_params, base=10.0)
+lambdas_ = np.logspace(-5,0,n_fine_tune_params, base=10.0) # range of parameters
 learning_rates = np.logspace(-6,-2,n_fine_tune_params)
 
 intern_dim = 10
@@ -58,7 +58,9 @@ if FINE_TUNE_SGD:
 
 w_true = np.float_power(np.arange(1,d+1), -which_w) # true parameter
 H = np.diag(np.float_power(np.arange(1,d+1), -which_h))
-for j in tqdm(range(len(lambdas_))):
+
+# for each hyperparameter, average its performances
+for j in tqdm(range(n_fine_tune_params)):
     # Averaging results
     for i in range(nb_avg):
         ### Data generation
@@ -75,7 +77,9 @@ for j in tqdm(range(len(lambdas_))):
 
         ### Solving the problem
         if FINE_TUNE_RIDGE:
+            # train on first part of data
             w = ridge(data[:n_train_ridge,:], observations[:n_train_ridge], lambda_=lambdas_[j])
+            # evaluate on what remains
             objectives_ridge[j] += objective(data[n_train_ridge:,:], observations[n_train_ridge:], w)
         if FINE_TUNE_SGD:
             model = MultiLayerPerceptron(input_dim=d,
@@ -103,6 +107,7 @@ for j in tqdm(range(len(lambdas_))):
             w = np.mean(ws[n_train_sgd//2:,:], axis=0)
             objectives_sgd[j] += objective(data[n_train_sgd:,:], observations[n_train_sgd:], w)
 
+# save best parameters
 if FINE_TUNE_RIDGE:
     idx_best = np.argmin(objectives_ridge)
     print(f'Best lambda_: {lambdas_[idx_best]}')

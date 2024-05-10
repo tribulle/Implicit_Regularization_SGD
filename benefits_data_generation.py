@@ -15,12 +15,12 @@ d = 200
 sigma2 = 1
 nb_avg = 20
 
-N_max_ridge = 6000
+N_max_ridge = 6000 # maximal nb of datapoints
 N_max_sgd = 2000
-n_ridge = np.floor(np.linspace(d,N_max_ridge,100)).astype(dtype=np.uint16)
+n_ridge = np.floor(np.linspace(d,N_max_ridge,100)).astype(dtype=np.uint16) # nb of datapoints for evaluations
 n_sgd = np.floor(np.linspace(d,N_max_sgd,20)).astype(dtype=np.uint16)
 
-n_fine_tune_params = 10
+n_fine_tune_params = 10 # nb of hyperparameters tested
 
 lambda_ = 1e-5*np.ones(len(n_ridge))
 lambdas_ = np.logspace(-5,1,n_fine_tune_params, base=10.0)
@@ -34,11 +34,11 @@ learning_rates = np.logspace(-6,-2,n_fine_tune_params)
 which_h = 1 # 1 or 2 -> i**(-...)
 which_w = 10 # 0, 1 or 10 -> i**(-...)
 
-GENERATE_RIDGE = True
-GENERATE_SGD = False
-FINE_TUNE = False
-USE_SAVED_PARAMS = True
-SAME_LR = True
+GENERATE_RIDGE = True # generate ridge weights
+GENERATE_SGD = False # generate SGD weights
+FINE_TUNE = False # DEPRECIATED: Fine tune on 1st iteration
+USE_SAVED_PARAMS = True # use the params saved
+SAME_LR = True # all learning rates are the same in learning_rate, for faster computations
 
 # saving paths
 SAVE_DIR_SGD = 'data/SGD/'
@@ -105,7 +105,7 @@ for i in tqdm(range(nb_avg)):
             np.save(SAVE_RIDGE_LAMBDA, np.vstack((lambda_, n_ridge)))
             print('\nDone')
         else:
-            for j,n in enumerate(n_ridge):
+            for j,n in enumerate(n_ridge): # generate ridge solution for each n
                 w_ridge[i,j,:] = ridge(data[:n,:], observations[:n], lambda_=lambda_[j])
 
     # SGD
@@ -146,7 +146,7 @@ for i in tqdm(range(nb_avg)):
             np.save(SAVE_SGD_GAMMA, np.vstack((learning_rate, n_sgd)))
             print('\nDone')
         else:
-            if SAME_LR:
+            if SAME_LR: # train once, and organize weights after
                 ws = train(model,
                           input_Tensor,
                           output_Tensor,
@@ -158,9 +158,9 @@ for i in tqdm(range(nb_avg)):
                           return_ws=True,
                           init_norm = None,
                           lr = learning_rate[0])
-                for j,n in enumerate(n_sgd):
+                for j,n in enumerate(n_sgd): # average the appropriate iterates
                     w_sgd[i,j,:] = np.mean(ws[n//2:n,:], axis=0)
-            else:
+            else: # train for each n
                 for j,n in enumerate(n_sgd):
                     ws = train(model,
                           input_Tensor,

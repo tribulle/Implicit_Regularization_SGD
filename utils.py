@@ -125,11 +125,13 @@ def margin(x,y,theta):
     norm = np.linalg.norm(theta)
     return np.min(prod)/norm
         
-### MLP
+### MLP Can be a SLN with depth = -1
 class MultiLayerPerceptron(nn.Sequential):
     def __init__(self, input_dim, intern_dim, output_dim, depth = 2, isBiased = False, init='uniform'):
         
         self.depth = depth
+        self.intern_dim = intern_dim
+        
         if depth ==-1:
             super(MultiLayerPerceptron, self).__init__()
             self.layer = nn.Linear(input_dim, output_dim, bias=isBiased)
@@ -169,7 +171,7 @@ class SingleLayerNet(nn.Module):
     def forward(self, x):
         return self.layer(x)
 
-### Optimizers
+### Gradient Decent Optimizer
 class GD(torch.optim.Optimizer):
     def __init__(self, params, lr=0.001):
         super(GD, self).__init__(params, dict(lr=lr))
@@ -181,14 +183,14 @@ class GD(torch.optim.Optimizer):
                     grad = p.grad.data
                     p.data -= group['lr'] * grad
 
-
+### Extract weights from a neural network in Tensor_Type
 def get_param(model, d, device=torch.device("cpu")):
     w = torch.eye(d, device=device)
     for layer in model.children():
         w = w@torch.transpose(layer.weight,0,1)
     return w.squeeze_()
 
-
+### Trainning function
 def train(model, input_data, output_data, untilConv = -1, lossFct = nn.MSELoss(), optimizer = 'SGD', lr=0.001, epochs = 20, batch_size=None, return_vals = 'error', return_ws = False, init_norm = None, save = True, debug = False, savename='model.pt'):
     '''
     return_vals: 'error', 'margin' or None/False
@@ -264,7 +266,7 @@ def train(model, input_data, output_data, untilConv = -1, lossFct = nn.MSELoss()
     elif return_ws and return_vals:
         return vals, ws
 
-### Comparison of models
+### Comparison of 2 models with objective function
 def compare(input, output, w1, w2):
     res1 = objective(input, output, w1)
     res2 = objective(input, output, w2)
@@ -276,6 +278,7 @@ def compare(input, output, w1, w2):
     print(f'   - objective: {res2:.3e}')
     print(f'   - weights norm: {np.linalg.norm(w2):.2f}')
 
+### Generate n_vector of dim_p with multivariate normal distribution
 def Generate_data(p = 100, n = 500, sigma2 = 2):
         ### Data generation
     data = np.random.multivariate_normal(
@@ -293,12 +296,7 @@ def Generate_data(p = 100, n = 500, sigma2 = 2):
 
     return data, observations
 
-def extract_weight(MLP):
-    sol_MLP = torch.eye(d)
-    for layer in MLP.children():
-        sol_MLP = sol_MLP@torch.transpose(layer.weight,0,1)
-    return sol_MLP.numpy()
-
+### Return ridge_error for a given Lambda_Array
 def Ridge_Lambda_Compute(A,b,LambdaArray):
     error = np.zeros((LambdaArray.shape[0]))
     for i in range(LambdaArray.shape[0]):

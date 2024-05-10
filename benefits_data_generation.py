@@ -37,7 +37,8 @@ which_w = 10 # 0, 1 or 10 -> i**(-...)
 GENERATE_RIDGE = True
 GENERATE_SGD = False
 FINE_TUNE = False
-USE_SAVED_PARAMS = False
+USE_SAVED_PARAMS = True
+SAME_LR = True
 
 # saving paths
 SAVE_DIR_SGD = 'data/SGD/'
@@ -145,19 +146,34 @@ for i in tqdm(range(nb_avg)):
             np.save(SAVE_SGD_GAMMA, np.vstack((learning_rate, n_sgd)))
             print('\nDone')
         else:
-            for j,n in enumerate(n_sgd):
+            if SAME_LR:
                 ws = train(model,
-                      input_Tensor,
-                      output_Tensor,
-                      lossFct = nn.MSELoss(),
-                      optimizer=optimizer,
-                      epochs=n,
-                      batch_size=None,
-                      return_vals=False,
-                      return_ws=True,
-                      init_norm = None,
-                      lr = learning_rate[j])
-                w_sgd[i,j,:] = np.mean(ws[n//2:,:], axis=0)
+                          input_Tensor,
+                          output_Tensor,
+                          lossFct = nn.MSELoss(),
+                          optimizer=optimizer,
+                          epochs=N_max_ridge,
+                          batch_size=None,
+                          return_vals=False,
+                          return_ws=True,
+                          init_norm = None,
+                          lr = learning_rate[0])
+                for j,n in enumerate(n_sgd):
+                    w_sgd[i,j,:] = np.mean(ws[n//2:n,:], axis=0)
+            else:
+                for j,n in enumerate(n_sgd):
+                    ws = train(model,
+                          input_Tensor,
+                          output_Tensor,
+                          lossFct = nn.MSELoss(),
+                          optimizer=optimizer,
+                          epochs=n,
+                          batch_size=None,
+                          return_vals=False,
+                          return_ws=True,
+                          init_norm = None,
+                          lr = learning_rate[j])
+                    w_sgd[i,j,:] = np.mean(ws[n//2:,:], axis=0)
 
 # Save results
 if GENERATE_RIDGE:

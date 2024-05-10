@@ -15,7 +15,7 @@ d = 200
 sigma2 = 1
 nb_avg = 20
 
-N_samples = 5000
+N_samples = 10000
 
 N_max_ridge = 6000
 N_max_sgd = 2000
@@ -26,7 +26,7 @@ all_which_h = [1] # 1 or 2 -> i**(-...)
 all_which_w = [0,1,10] # 0, 1 or 10 -> i**(-...)
 
 OUTLIER_DETECTION = True
-threshold_obj = sigma2*2
+threshold_obj = sigma2*4
 
 # saving paths
 SAVE_DIR_SGD = 'data/SGD/'

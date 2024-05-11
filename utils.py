@@ -171,7 +171,54 @@ class SingleLayerNet(nn.Module):
     def forward(self, x):
         return self.layer(x)
 
-### Gradient Decent Optimizer
+class NonLinearMLP(nn.Sequential):
+    def __init__(self, input_dim, intern_dim, output_dim, depth=2, isBiased=False, init='uniform'):
+        
+        self.depth = depth
+        if depth == -1:
+            super(MultiLayerPerceptron, self).__init__()
+            self.layer = nn.Linear(input_dim, output_dim, bias=isBiased)
+            if init == 'uniform':
+                self.layer.weight.data.uniform_(0.0, 1.0)
+            if init == 'zero':
+                self.layer.weight.data.fill_(0)
+            self.activation = nn.ReLU()
+        else:
+            dict = OrderedDict([("input", nn.Linear(input_dim, intern_dim, bias=isBiased)),
+                                ("activation", nn.ReLU())])
+            for i in range(depth):
+                dict.update({str(i): nn.Linear(intern_dim, intern_dim, bias=isBiased),
+                             "activation_" + str(i): nn.ReLU()})
+            dict.update({"output": nn.Linear(intern_dim, output_dim, bias=isBiased)})
+            super().__init__(dict)
+
+        self.reset_init_weights_biases()  # so that we do not use a default initialization
+
+    def reset_init_weights_biases(self, norm = None):
+        for layer in self.children():
+            if isinstance(layer, nn.Linear):
+                if norm == None:
+                    stdv = 1. / math.sqrt(layer.weight.size(1))
+                else :
+                    stdv = norm
+                
+                layer.weight.data.uniform_(-stdv, stdv)
+                if layer.bias is not None:
+                    layer.bias.data.uniform_(-stdv, stdv)
+
+class SingleLayerNet(nn.Module):
+    def __init__(self, input_size, output_size, init='uniform'):
+        super(SingleLayerNet, self).__init__()
+        self.layer = nn.Linear(input_size, output_size, bias=False)
+        if init == 'uniform':
+            self.layer.weight.data.uniform_(0.0, 1.0)
+        if init == 'zero':
+            self.layer.weight.data.fill_(0)
+        
+    def forward(self, x):
+        return self.layer(x)
+
+### Optimizers
 class GD(torch.optim.Optimizer):
     def __init__(self, params, lr=0.001):
         super(GD, self).__init__(params, dict(lr=lr))
@@ -183,11 +230,12 @@ class GD(torch.optim.Optimizer):
                     grad = p.grad.data
                     p.data -= group['lr'] * grad
 
-### Extract weights from a neural network in Tensor_Type
+
 def get_param(model, d, device=torch.device("cpu")):
     w = torch.eye(d, device=device)
     for layer in model.children():
-        w = w@torch.transpose(layer.weight,0,1)
+        if isinstance(layer, nn.Linear):
+            w = w@torch.transpose(layer.weight,0,1)
     return w.squeeze_()
 
 ### Trainning function

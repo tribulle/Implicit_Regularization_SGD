@@ -55,21 +55,22 @@ w_ridge = np.zeros((nb_avg, len(n_ridge), d))
 w_sgd = np.zeros((nb_avg, len(n_sgd), d))
 
 if not FINE_TUNE and USE_SAVED_PARAMS: # load best coeffs
-    try:
-        load = np.load(SAVE_SGD_GAMMA)
-        learning_rate = load[0]
-        if (n_sgd == load[1]).all():
-            warnings.warn('Learning rates fine-tuned for different values of n_sgd', UserWarning)
-    except FileNotFoundError:
-        print(f'No learning rates found - using default lr={learning_rate[0]}')
-
-    try:
-        load = np.load(SAVE_RIDGE_LAMBDA)
-        lambda_ = load[0]
-        if (n_ridge == load[1]).all():
-            warnings.warn('Lambda values fine-tuned for different values of n_ridge', UserWarning)
-    except FileNotFoundError:
-        print(f'No lambdas found - using default lambda={lambda_[0]}')
+    if GENERATE_SGD:
+        try:
+            load = np.load(SAVE_SGD_GAMMA)
+            learning_rate = load[0]
+            if (n_sgd != load[1]).any():
+                warnings.warn('Learning rates fine-tuned for different values of n_sgd', UserWarning)
+        except FileNotFoundError:
+            print(f'No learning rates found - using default lr={learning_rate[0]}')
+    if GENERATE_RIDGE:
+        try:
+            load = np.load(SAVE_RIDGE_LAMBDA)
+            lambda_ = load[0]
+            if (n_ridge != load[1]).any():
+                warnings.warn('Lambda values fine-tuned for different values of n_ridge', UserWarning)
+        except FileNotFoundError:
+            print(f'No lambdas found - using default lambda={lambda_[0]}')
 
 # Averaging results
 for i in tqdm(range(nb_avg)):

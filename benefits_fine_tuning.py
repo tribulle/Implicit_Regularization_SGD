@@ -26,7 +26,7 @@ n_sgd = np.floor(np.linspace(d,N_max_sgd,20)).astype(dtype=np.uint16)
 
 n_fine_tune_params = 10 # nb of hyperparameters tested
 
-lambdas_ = np.logspace(-5,0,n_fine_tune_params, base=10.0) # range of parameters
+lambdas_ = np.logspace(-5,-1,n_fine_tune_params, base=10.0) # range of parameters
 learning_rates = np.logspace(-6,-2,n_fine_tune_params)
 
 intern_dim = 10
@@ -35,7 +35,7 @@ optimizer = 'SGD'
 learning_rates = np.logspace(-6,-2,n_fine_tune_params)
 
 which_h = 1 # 1 or 2 -> i**(-...)
-which_w = 10 # 0, 1 or 10 -> i**(-...)
+which_w = 0 # 0, 1 or 10 -> i**(-...)
 
 FINE_TUNE_RIDGE = True
 FINE_TUNE_SGD = False

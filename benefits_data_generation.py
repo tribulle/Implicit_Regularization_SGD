@@ -31,11 +31,11 @@ optimizer = 'SGD'
 learning_rate = 0.001*np.ones(len(n_sgd))
 learning_rates = np.logspace(-6,-2,n_fine_tune_params)
 
-which_h = 1 # 1 or 2 -> i**(-...)
+which_h = 2 # 1 or 2 -> i**(-...)
 which_w = 0 # 0, 1 or 10 -> i**(-...)
 
-GENERATE_RIDGE = True # generate ridge weights
-GENERATE_SGD = False # generate SGD weights
+GENERATE_RIDGE = False # generate ridge weights
+GENERATE_SGD = True # generate SGD weights
 FINE_TUNE = False # DEPRECIATED: Fine tune on 1st iteration
 USE_SAVED_PARAMS = True # use the params saved
 SAME_LR = True # all learning rates are the same in learning_rate, for faster computations
@@ -58,17 +58,27 @@ if not FINE_TUNE and USE_SAVED_PARAMS: # load best coeffs
     if GENERATE_SGD:
         try:
             load = np.load(SAVE_SGD_GAMMA)
-            learning_rate = load[0]
-            if (n_sgd != load[1]).any():
-                warnings.warn('Learning rates fine-tuned for different values of n_sgd', UserWarning)
+            if np.ndim(load) == 0:
+                learning_rate = load*np.ones(len(n_sgd))
+            elif np.ndim(load) == 1:
+                learning_rate = load
+            else:
+                learning_rate = load[0]
+                if (n_sgd != load[1]).any():
+                    warnings.warn('Learning rates fine-tuned for different values of n_sgd', UserWarning)
         except FileNotFoundError:
             print(f'No learning rates found - using default lr={learning_rate[0]}')
     if GENERATE_RIDGE:
         try:
             load = np.load(SAVE_RIDGE_LAMBDA)
-            lambda_ = load[0]
-            if (n_ridge != load[1]).any():
-                warnings.warn('Lambda values fine-tuned for different values of n_ridge', UserWarning)
+            if np.ndim(load) == 0:
+                lambda_ = load*np.ones(len(n_ridge))
+            elif np.ndim(load) == 1:
+                lambda_ = load
+            else:
+                lambda_ = load[0]
+                if (n_ridge != load[1]).any():
+                    warnings.warn('Lambda values fine-tuned for different values of n_ridge', UserWarning)
         except FileNotFoundError:
             print(f'No lambdas found - using default lambda={lambda_[0]}')
 

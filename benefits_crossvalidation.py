@@ -32,8 +32,8 @@ depth = -1 # Single Layer
 optimizer = 'SGD'
 learning_rates = np.logspace(-6,-2,n_fine_tune_params)
 
-which_h = 1 # 1 or 2 -> i**(-...)
-which_w = 1 # 0, 1 or 10 -> i**(-...)
+which_h = 2 # 1 or 2 -> i**(-...)
+which_w = 10 # 0, 1 or 10 -> i**(-...)
 
 FINE_TUNE_RIDGE = True
 FINE_TUNE_SGD = False
@@ -118,12 +118,12 @@ if FINE_TUNE_RIDGE:
     idx_best = np.argmin(objectives_ridge)
     print(f'Best lambda_: {lambdas_[idx_best]}')
     print(f'Mean objective: {objectives_ridge[idx_best]/len(lambdas_)}')
-    np.save(SAVE_RIDGE_LAMBDA, np.vstack((lambdas_[idx_best]*np.ones(len(n_ridge)), n_ridge)))
+    np.save(SAVE_RIDGE_LAMBDA, lambdas_[idx_best])
 if FINE_TUNE_SGD:
     idx_best = np.argmin(objectives_sgd)
     print(f'Best gamma: {learning_rates[idx_best]}')
     print(f'Mean objective: {objectives_sgd[idx_best]/len(learning_rates)}')
-    np.save(SAVE_SGD_GAMMA, np.vstack((learning_rates[idx_best]*np.ones(len(n_sgd)), n_sgd)))
+    np.save(SAVE_SGD_GAMMA, learning_rates[idx_best])
 
 
 

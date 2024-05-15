@@ -2,16 +2,17 @@ import numpy as np
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 import torch
+import os
+os.system("utils.py")
 
-from utils import *
 
 np.random.seed(42)
-LambdaArray = np.logspace(-2,3,100)
+LambdaArray = np.logspace(-6,1,200)
 NDataArray = np.array([10,100,1000,10000,100000])
 
-p_Array = [2]
-n_Array = [10]
-sigma2_Array = [4]
+p_Array = [10]
+n_Array = [100]
+sigma2_Array = [2]
 nb_avg_test = 20
 nb_avg_train = 20
 

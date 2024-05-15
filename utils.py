@@ -107,14 +107,6 @@ def ridge_path(A,b,nu,t):
         res[idx,:] = ridge(A,b,lambda_[idx])
     return res
 
-### CustomLoss
-class MSE(nn.Module):
-    def __init__(self):
-        super(MSE, self).__init__()
-
-    def forward(self, inputs, targets):
-        loss = torch.nn.functional.pairwise_distance(inputs,targets).square().mean()/2
-        return loss
 
 def exp_loss(output, target, true_param):
     dot = torch.einsum('i,j->j', true_param, output*target)
@@ -159,18 +151,6 @@ class MultiLayerPerceptron(nn.Sequential):
             if layer.bias is not None:
                 layer.bias.data.uniform_(-stdv, stdv)
 
-class SingleLayerNet(nn.Module):
-    def __init__(self, input_size, output_size, init='uniform'):
-        super(SingleLayerNet, self).__init__()
-        self.layer = nn.Linear(input_size, output_size, bias=False)
-        if init == 'uniform':
-            self.layer.weight.data.uniform_(0.0, 1.0)
-        if init == 'zero':
-            self.layer.weight.data.fill_(0)
-        
-    def forward(self, x):
-        return self.layer(x)
-
 class NonLinearMLP(nn.Sequential):
     def __init__(self, input_dim, intern_dim, output_dim, depth=2, isBiased=False, init='uniform'):
         
@@ -206,19 +186,7 @@ class NonLinearMLP(nn.Sequential):
                 if layer.bias is not None:
                     layer.bias.data.uniform_(-stdv, stdv)
 
-class SingleLayerNet(nn.Module):
-    def __init__(self, input_size, output_size, init='uniform'):
-        super(SingleLayerNet, self).__init__()
-        self.layer = nn.Linear(input_size, output_size, bias=False)
-        if init == 'uniform':
-            self.layer.weight.data.uniform_(0.0, 1.0)
-        if init == 'zero':
-            self.layer.weight.data.fill_(0)
-        
-    def forward(self, x):
-        return self.layer(x)
-
-### Optimizers
+### GD Optimizer
 class GD(torch.optim.Optimizer):
     def __init__(self, params, lr=0.001):
         super(GD, self).__init__(params, dict(lr=lr))
@@ -230,7 +198,7 @@ class GD(torch.optim.Optimizer):
                     grad = p.grad.data
                     p.data -= group['lr'] * grad
 
-
+### Return Weights of a model as Tensor
 def get_param(model, d, device=torch.device("cpu")):
     w = torch.eye(d, device=device)
     for layer in model.children():
@@ -239,7 +207,7 @@ def get_param(model, d, device=torch.device("cpu")):
     return w.squeeze_()
 
 ### Trainning function
-def train(model, input_data, output_data, untilConv = -1, lossFct = nn.MSELoss(), optimizer = 'SGD', lr=0.001, epochs = 20, batch_size=None, return_vals = 'error', return_ws = False, init_norm = None, save = True, debug = False, savename='model.pt'):
+def train(model, input_data, output_data, untilConv = -1, lossFct = 'MSE', optimizer = 'SGD', lr=0.001, epochs = 20, batch_size=None, return_vals = 'error', return_ws = False, init_norm = None, save = True, debug = False, savename='model.pt'):
     '''
     return_vals: 'error', 'margin' or None/False
     '''
@@ -249,6 +217,8 @@ def train(model, input_data, output_data, untilConv = -1, lossFct = nn.MSELoss()
         optimizer = torch.optim.ASGD(model.parameters(), lr=lr)
     elif optimizer == 'GD':
         optimizer = GD(model.parameters(), lr=lr)
+    
+    if lossFct == 'MSE' : lossFct = nn.MSELoss()
     
     post_loss = 0
     n,d = input_data.shape
@@ -308,12 +278,13 @@ def train(model, input_data, output_data, untilConv = -1, lossFct = nn.MSELoss()
         torch.save(model.state_dict(), DIRPATH+savename)
     
     if return_vals and not return_ws:
-        return vals,i
+        return vals
     elif return_ws and not return_vals:
         return ws
     elif return_ws and return_vals:
         return vals, ws
 
+<<<<<<< Updated upstream
 def cross_validation(n, k=10, homogeneous=True, sizes=None):
     '''
     Computes masks for training and testing datasets
@@ -365,6 +336,8 @@ def compare(input, output, w1, w2):
     print(f'   - objective: {res2:.3e}')
     print(f'   - weights norm: {np.linalg.norm(w2):.2f}')
 
+=======
+>>>>>>> Stashed changes
 ### Generate n_vector of dim_p with multivariate normal distribution
 def Generate_data(p = 100, n = 500, sigma2 = 2):
         ### Data generation
@@ -382,12 +355,3 @@ def Generate_data(p = 100, n = 500, sigma2 = 2):
     observations = np.array(observations) # shape (n,)
 
     return data, observations
-
-### Return ridge_error for a given Lambda_Array
-def Ridge_Lambda_Compute(A,b,LambdaArray):
-    error = np.zeros((LambdaArray.shape[0]))
-    for i in range(LambdaArray.shape[0]):
-        res = ridge(A,b,LambdaArray[i])
-        error[i] = objective(A,b,res)
-    ridgeErrorArray = np.hstack((LambdaArray[:,np.newaxis],error[:,np.newaxis]))
-    return ridgeErrorArray

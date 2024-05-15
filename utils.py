@@ -314,6 +314,45 @@ def train(model, input_data, output_data, untilConv = -1, lossFct = nn.MSELoss()
     elif return_ws and return_vals:
         return vals, ws
 
+def cross_validation(n, k=10, homogeneous=True, sizes=None):
+    '''
+    Computes masks for training and testing datasets
+
+    Arguments
+    ---
+    n: int
+        number of datapoints
+    k: int
+        number of groups for cross-validation
+    homogeneous: bool
+        True to have homogeneous groups (in size)
+        False to generate uneven groups (see)
+    sizes: (k,) array like of ints
+        size of each train group, if homogeneous is True
+
+    Returns 
+    ---
+    train_masks: list
+        list of k index masks for training groups
+    test_masks: list
+        list of k index masks for testing groups
+    '''
+    if homogeneous:
+        train_masks = []
+        test_masks = np.array_split(np.arange(n),k)
+        for i in range(k):
+            train = list(set(range(n))-set(test_masks[i])) # complement of test
+            train_masks.append(train)
+    else:
+        assert k == len(sizes), f'sizes must be of length k={k}'
+        train_masks = []
+        test_masks = []
+        for i in range(k):
+            train_masks.append(np.random.choice(n,size=sizes[i]))
+            test_masks.append(list(set(range(n))-set(train_masks[i]))) 
+        
+    return train_masks, test_masks
+
 ### Comparison of 2 models with objective function
 def compare(input, output, w1, w2):
     res1 = objective(input, output, w1)

@@ -35,7 +35,7 @@ optimizer = 'SGD'
 learning_rates = np.logspace(-6,-2,n_fine_tune_params)
 
 which_h = 1 # 1 or 2 -> i**(-...)
-which_w = 0 # 0, 1 or 10 -> i**(-...)
+which_w = 1 # 0, 1 or 10 -> i**(-...)
 
 FINE_TUNE_RIDGE = True
 FINE_TUNE_SGD = False

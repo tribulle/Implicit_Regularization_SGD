@@ -32,7 +32,7 @@ learning_rate = 0.001*np.ones(len(n_sgd))
 learning_rates = np.logspace(-6,-2,n_fine_tune_params)
 
 which_h = 1 # 1 or 2 -> i**(-...)
-which_w = 10 # 0, 1 or 10 -> i**(-...)
+which_w = 0 # 0, 1 or 10 -> i**(-...)
 
 GENERATE_RIDGE = True # generate ridge weights
 GENERATE_SGD = False # generate SGD weights

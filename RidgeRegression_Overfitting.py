@@ -31,7 +31,7 @@ def plot_RidgeRegression(modelErrorArray,X,modelName,p,n,sigma2):
     
 def train_RidgeRegression(LambdaArray):
     
-    data_ , obs_ = Generate_data(p = p, n = n, sigma2 = sigma2)
+    data_ , obs_ = generate_data(p = p, n = n, sigma2 = sigma2)
     
     Ridge_W = np.zeros((LambdaArray.shape[0],p))
     for i in range(LambdaArray.shape[0]):
@@ -47,7 +47,7 @@ def tests_RidgeRegression(nb_avg, Ridge_W, NDataArray):
         population_risk = np.zeros((nb_avg,Ridge_W.shape[0]))
         for k in range(nb_avg):
             
-            data_ , obs_ = Generate_data(p = p, n = NDataArray[i], sigma2 = sigma2)
+            data_ , obs_ = generate_data(p = p, n = NDataArray[i], sigma2 = sigma2)
             for c in range(Ridge_W.shape[0]):
                 
                 population_risk[k,c] = objective(data_, obs_, Ridge_W[c])

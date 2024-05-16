@@ -20,21 +20,6 @@ def objective_nonlinear(A,b,Xs):
     return ((A@x-b)**2).sum()/(A.shape[0])
 
 
-def nu_regression(t, thresh=20):
-    idxs = t<thresh
-    if len(idxs)<len(t): # condition is met
-        res = np.hstack(
-            (100/81*(np.exp(0.99*t[idxs])-1),
-             100/81*(np.exp(0.99*thresh)-1)*np.ones(len(t)-len(t[idxs]))
-             )
-        )
-    else:
-        res = 100/81*(np.exp(0.99*t)-1)
-    return res
-
-def nu_classification(t, eta=0.123):
-    return t/eta
-
 ### Ridge regression (L2 penalization)
 def ridge(A,b,lambda_):
     '''
@@ -93,29 +78,6 @@ def solve_nonlinear_ridge(Ws, b, lambda_):
         A = Ws[k]@A
     x = ridge(A,b,lambda_)
     return x
-
-def ridge_path(A,b,nu,t):
-    '''
-    A: (n,d) array
-    b: (n,) array
-    nu: func
-    t: array-like
-    '''
-    res = np.zeros((len(t), A.shape[1]))
-    lambda_ = 1/(2*nu(t))
-    for idx,time in enumerate(t):
-        res[idx,:] = ridge(A,b,lambda_[idx])
-    return res
-
-
-def exp_loss(output, target, true_param):
-    dot = torch.einsum('i,j->j', true_param, output*target)
-    return torch.exp(-dot).sum()
-
-def margin(x,y,theta):
-    prod = y*(x@theta)
-    norm = np.linalg.norm(theta)
-    return np.min(prod)/norm
         
 ### MLP Can be a SLN with depth = -1
 class MultiLayerPerceptron(nn.Sequential):
@@ -284,7 +246,6 @@ def train(model, input_data, output_data, untilConv = -1, lossFct = 'MSE', optim
     elif return_ws and return_vals:
         return vals, ws
 
-<<<<<<< Updated upstream
 def cross_validation(n, k=10, homogeneous=True, sizes=None):
     '''
     Computes masks for training and testing datasets
@@ -324,34 +285,22 @@ def cross_validation(n, k=10, homogeneous=True, sizes=None):
         
     return train_masks, test_masks
 
-### Comparison of 2 models with objective function
-def compare(input, output, w1, w2):
-    res1 = objective(input, output, w1)
-    res2 = objective(input, output, w2)
-    print('Model 1:')
-    print(f'   - objective: {res1:.3e}')
-    print(f'   - weights norm: {np.linalg.norm(w1):.2f}')
-
-    print('Model 2:')
-    print(f'   - objective: {res2:.3e}')
-    print(f'   - weights norm: {np.linalg.norm(w2):.2f}')
-
-=======
->>>>>>> Stashed changes
 ### Generate n_vector of dim_p with multivariate normal distribution
-def Generate_data(p = 100, n = 500, sigma2 = 2):
-        ### Data generation
+def generate_data(p = 200, n = 6000, sigma2 = 1, which_w=1, which_h=1):
+
+    H = np.diag(np.float_power(np.arange(1,p+1), -which_h))
     data = np.random.multivariate_normal(
         np.zeros(p),
-        np.ones((p,p)),
+        H,
         size=n) # shape (n,p)
 
-    w_true = np.ones(p)*1/np.sqrt(p)
+    w_true =  np.float_power(np.arange(1,p+1), -which_w)
 
     observations = [np.random.normal(
         np.dot(w_true, x),
         sigma2)
         for x in data]
-    observations = np.array(observations) # shape (n,)
+    
+    observations = np.array(observations)
 
     return data, observations

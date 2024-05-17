@@ -31,9 +31,9 @@ threshold_obj = sigma2*4
 # saving paths
 SAVE_DIR_SGD = 'data/SGD/'
 SAVE_DIR_RIDGE = 'data/Ridge/'
-SAVE_DATA_PLOT_N = 'data/data_plot_n.npy'
-SAVE_DATA_PLOT_SGD = 'data/data_plot_sgd.npy'
-SAVE_DATA_PLOT_RIDGE = 'data/data_plot_ridge.npy'
+SAVE_DATA_PLOT_N = f'data/data_plot_n_d{d}.npy'
+SAVE_DATA_PLOT_SGD = f'data/data_plot_sgd_d{d}.npy'
+SAVE_DATA_PLOT_RIDGE = f'data/data_plot_ridge_d{d}.npy'
 SAVE_DIR_FIG = 'figures/'
 
 # Plots

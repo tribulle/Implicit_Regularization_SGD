@@ -11,19 +11,22 @@ torch.manual_seed(9)
 ### Parameters
 COMPUTE_DATA_PLOT = True
 
-d = 200
+d = 200//4
 sigma2 = 1
 nb_avg = 20
 
 N_samples = 10000
 
-N_max_ridge = 6000
-N_max_sgd = 2000
+N_max_ridge = 6000//4
+N_max_sgd = 2000//4
 n_ridge = np.floor(np.linspace(d,N_max_ridge,100)).astype(dtype=np.uint16)
 n_sgd = np.floor(np.linspace(d,N_max_sgd,20)).astype(dtype=np.uint16)
 
 all_which_h = [1,2] # 1 or 2 -> i**(-...)
 all_which_w = [0,1,10] # 0, 1 or 10 -> i**(-...)
+
+intern_dim = 10
+depth = -1 # Single Layer
 
 OUTLIER_DETECTION = True
 threshold_obj = sigma2*4
@@ -31,9 +34,9 @@ threshold_obj = sigma2*4
 # saving paths
 SAVE_DIR_SGD = 'data/SGD/'
 SAVE_DIR_RIDGE = 'data/Ridge/'
-SAVE_DATA_PLOT_N = f'data/data_plot_n_d{d}.npy'
-SAVE_DATA_PLOT_SGD = f'data/data_plot_sgd_d{d}.npy'
-SAVE_DATA_PLOT_RIDGE = f'data/data_plot_ridge_d{d}.npy'
+SAVE_DATA_PLOT_N = f'data/data_plot_n_d{d}_depth{depth}_indim{intern_dim}.npy'
+SAVE_DATA_PLOT_SGD = f'data/data_plot_sgd_d{d}_depth{depth}_indim{intern_dim}.npy'
+SAVE_DATA_PLOT_RIDGE = f'data/data_plot_ridge_d{d}_depth{depth}_indim{intern_dim}.npy'
 SAVE_DIR_FIG = 'figures/'
 
 # Plots
@@ -50,9 +53,8 @@ if COMPUTE_DATA_PLOT:
     for i,which_h in enumerate(all_which_h):
         for j,which_w in enumerate(all_which_w):
             # Get weights
-            filename = f'iterates_H{which_h}_w{which_w}_d{d}.npy'
-            SAVE_RIDGE_ITERATE = SAVE_DIR_RIDGE + filename
-            SAVE_SGD_ITERATE = SAVE_DIR_SGD + filename
+            SAVE_RIDGE_ITERATE = SAVE_DIR_RIDGE + f'iterates_H{which_h}_w{which_w}_d{d}.npy'
+            SAVE_SGD_ITERATE = SAVE_DIR_SGD + f'iterates_H{which_h}_w{which_w}_d{d}_depth{depth}_indim{intern_dim}.npy'
 
             ### Load weights
             w_ridge = np.load(SAVE_RIDGE_ITERATE) # (nb_avg, len(n_ridge), d)
@@ -137,6 +139,6 @@ for i, which_h in enumerate(all_which_h):
     axs[1].set_ylabel('Population Risk')
 
     plt.suptitle('SGD vs Ridge ; H:'+H_LABELS[i])
-    plt.savefig(SAVE_DIR_FIG+f'benefits_H{which_h}_d{d}')
+    plt.savefig(SAVE_DIR_FIG+f'benefits_H{which_h}_d{d}_depth{depth}_indim{intern_dim}')
     plt.show()
     

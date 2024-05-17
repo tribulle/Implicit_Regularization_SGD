@@ -24,13 +24,11 @@ n_sgd = np.floor(np.linspace(d,N_max_sgd,20)).astype(dtype=np.uint16)
 n_fine_tune_params = 10 # nb of hyperparameters tested
 
 lambda_ = 1e-5*np.ones(len(n_ridge))
-lambdas_ = np.logspace(-5,1,n_fine_tune_params, base=10.0)
 
 intern_dim = 10
 depth = -1 # Single Layer
 optimizer = 'SGD'
 learning_rate = 0.001*np.ones(len(n_sgd))
-learning_rates = np.logspace(-6,-2,n_fine_tune_params)
 
 which_h = 1 # 1 or 2 -> i**(-...)
 which_w = 10 # 0, 1 or 10 -> i**(-...)
@@ -40,40 +38,39 @@ GENERATE_SGD = False # generate SGD weights
 USE_SAVED_PARAMS = True # use the params saved
 SAME_LR = True # all learning rates are the same in learning_rate, for faster computations
 
-# saving paths
-SAVE_DIR_SGD = 'data/SGD/'
-SAVE_DIR_RIDGE = 'data/Ridge/'
-filename_iterates = f'iterates_H{which_h}_w{which_w}_d{d}.npy'
-SAVE_RIDGE_ITERATE = SAVE_DIR_RIDGE + filename_iterates
-SAVE_SGD_ITERATE = SAVE_DIR_SGD + filename_iterates
-SAVE_RIDGE_LAMBDA = SAVE_DIR_RIDGE + f'lambda_H{which_h}_w{which_w}_d{d}.npy'
-SAVE_SGD_GAMMA = SAVE_DIR_SGD + f'gamma_H{which_h}_w{which_w}_d{d}.npy'
-
 ### Argument parser
 parser = argparse.ArgumentParser(prog='Data generation for implicit regularization of SGD study')
 parser.add_argument('--SGD', action=argparse.BooleanOptionalAction, default=GENERATE_SGD,
                     help='generate SGD data')
 parser.add_argument('--Ridge', action=argparse.BooleanOptionalAction, default=GENERATE_RIDGE,
                     help='generate Ridge data')
-parser.add_argument('-h', default=which_h, choices=[1,2], help='matrix H1 or H2 to use')
-parser.add_argument('-w', default=which_w, choices=[0,1,10], help='true vector w0, w1 or w10')
+parser.add_argument('-H', default=which_h, choices=[1,2], type=int, help='matrix H1 or H2 to use')
+parser.add_argument('-w', default=which_w, choices=[0,1,10], type=int, help='true vector w0, w1 or w10')
 parser.add_argument('-d', default=d, type=int, help='dimension of the data')
 parser.add_argument('--N_ridge', default=N_max_ridge, type=int, help='Max number of data for ridge')
 parser.add_argument('--N_SGD', default=N_max_sgd, type=int, help='Max number of data for SGD')
 parser.add_argument('--depth', default=depth, type=int, help='depth of MLP (i.e nb of hidden layers), -1 for single layer')
 parser.add_argument('--intern_dim', default=intern_dim, type=int, help='intern dimension of hidden layers')
 
-args = parser.parse()
+args = parser.parse_args()
 
 GENERATE_RIDGE = args.Ridge
 GENERATE_SGD = args.SGD
-which_h = args.h
-which_w = args.w
+which_h = int(args.H)
+which_w = int(args.w)
 d = args.d
 N_max_ridge = args.N_ridge
 N_max_sgd = args.N_SGD
 depth = args.depth
 intern_dim = args.intern_dim
+
+# saving paths
+SAVE_DIR_SGD = 'data/SGD/'
+SAVE_DIR_RIDGE = 'data/Ridge/'
+SAVE_RIDGE_ITERATE = SAVE_DIR_RIDGE + f'iterates_H{which_h}_w{which_w}_d{d}.npy'
+SAVE_SGD_ITERATE = SAVE_DIR_SGD + f'iterates_H{which_h}_w{which_w}_d{d}_depth{depth}_indim{intern_dim}.npy'
+SAVE_RIDGE_LAMBDA = SAVE_DIR_RIDGE + f'lambda_H{which_h}_w{which_w}_d{d}.npy'
+SAVE_SGD_GAMMA = SAVE_DIR_SGD + f'gamma_H{which_h}_w{which_w}_d{d}_depth{depth}_indim{intern_dim}.npy'
 
 ### Begin experiment
 # Initialization

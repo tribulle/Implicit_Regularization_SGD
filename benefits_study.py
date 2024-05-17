@@ -11,18 +11,18 @@ torch.manual_seed(9)
 ### Parameters
 COMPUTE_DATA_PLOT = True
 
-d = 200
+d = 200//4
 sigma2 = 1
 nb_avg = 20
 
 N_samples = 10000
 
-N_max_ridge = 6000
-N_max_sgd = 2000
+N_max_ridge = 6000//4
+N_max_sgd = 2000//4
 n_ridge = np.floor(np.linspace(d,N_max_ridge,100)).astype(dtype=np.uint16)
 n_sgd = np.floor(np.linspace(d,N_max_sgd,20)).astype(dtype=np.uint16)
 
-all_which_h = [1,2] # 1 or 2 -> i**(-...)
+all_which_h = [1] # 1 or 2 -> i**(-...)
 all_which_w = [0,1,10] # 0, 1 or 10 -> i**(-...)
 
 OUTLIER_DETECTION = True
@@ -98,10 +98,13 @@ if COMPUTE_DATA_PLOT:
             #sgd_risks[sgd_risks > threshold_obj] = None
 
             # for each n_sgd, search minimal n_ridge with same risk
-            for k,n in enumerate(n_sgd): 
-                valid = n_ridge[np.where(ridge_risks[i, j,:]<sgd_risks[i, j,k])] # ridge better than sgd
+            for k,n in enumerate(n_sgd):
+                if np.isnan(sgd_risks[i, j,k]):
+                    valid = [n_ridge[0]]
+                else:
+                    valid = n_ridge[np.where(ridge_risks[i, j,:]<sgd_risks[i, j,k])] # ridge better than sgd with n_sgd[k] samples
                 if len(valid) != 0:
-                    y_plot[i,j,k] = valid[0] # smaller n_ridge better than sgd
+                    y_plot[i,j,k] = valid[0] # smallest n_ridge better than sgd
                 else:
                     y_plot[i,j,k] = n_ridge[-1] #n_ridge[-1] # default: all ridge worse than sgd
 

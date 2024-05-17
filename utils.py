@@ -215,12 +215,6 @@ def train(model, input_data, output_data, untilConv = -1, lossFct = 'MSE', optim
 
         if return_vals == 'error':
             vals[i] = loss.item()
-        elif return_vals == 'margin':
-            vals[i] = margin(input_data[rand_idx], y_pred, w)
-
-            #if math.isnan(loss.item()):
-                #print(f"Epoch: {i+1}   Loss: {loss.item()}")
-                #break
 
         optimizer.zero_grad()
         loss.backward()

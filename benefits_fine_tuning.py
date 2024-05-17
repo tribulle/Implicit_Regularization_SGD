@@ -11,12 +11,12 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 ### Parameters
 # code parameters
-d = 200
+d = 200//4
 sigma2 = 1
 nb_avg = 10
 
-N_max_ridge = 6000
-N_max_sgd = 2000
+N_max_ridge = 6000//4
+N_max_sgd = 2000//4
 train_test_split = 0.8 # 80% to train, 20% to evaluate
 n_train_ridge = int(train_test_split*N_max_ridge)
 n_train_sgd = int(train_test_split*N_max_sgd)
@@ -35,10 +35,10 @@ optimizer = 'SGD'
 learning_rates = np.logspace(-6,-2,n_fine_tune_params)
 
 which_h = 1 # 1 or 2 -> i**(-...)
-which_w = 1 # 0, 1 or 10 -> i**(-...)
+which_w = 0 # 0, 1 or 10 -> i**(-...)
 
-FINE_TUNE_RIDGE = True
-FINE_TUNE_SGD = False
+FINE_TUNE_RIDGE = False
+FINE_TUNE_SGD = True
 
 # saving paths
 SAVE_DIR_SGD = 'data/SGD/'

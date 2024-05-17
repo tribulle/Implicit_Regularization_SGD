@@ -11,12 +11,12 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 ### Parameters
 # code parameters
-d = 200
+d = 200//4
 sigma2 = 1
 nb_avg = 20
 
-N_max_ridge = 6000 # maximal nb of datapoints
-N_max_sgd = 2000
+N_max_ridge = 6000//4 # maximal nb of datapoints
+N_max_sgd = 2000//4
 n_ridge = np.floor(np.linspace(d,N_max_ridge,100)).astype(dtype=np.uint16) # nb of datapoints for evaluations
 n_sgd = np.floor(np.linspace(d,N_max_sgd,20)).astype(dtype=np.uint16)
 
@@ -31,11 +31,11 @@ optimizer = 'SGD'
 learning_rate = 0.001*np.ones(len(n_sgd))
 learning_rates = np.logspace(-6,-2,n_fine_tune_params)
 
-which_h = 2 # 1 or 2 -> i**(-...)
-which_w = 0 # 0, 1 or 10 -> i**(-...)
+which_h = 1 # 1 or 2 -> i**(-...)
+which_w = 10 # 0, 1 or 10 -> i**(-...)
 
-GENERATE_RIDGE = False # generate ridge weights
-GENERATE_SGD = True # generate SGD weights
+GENERATE_RIDGE = True # generate ridge weights
+GENERATE_SGD = False # generate SGD weights
 FINE_TUNE = False # DEPRECIATED: Fine tune on 1st iteration
 USE_SAVED_PARAMS = True # use the params saved
 SAME_LR = True # all learning rates are the same in learning_rate, for faster computations

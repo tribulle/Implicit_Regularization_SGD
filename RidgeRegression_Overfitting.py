@@ -6,8 +6,8 @@ import os
 os.system("utils.py")
 
 
-np.random.seed(42)
-LambdaArray = np.logspace(-6,1,200)
+np.random.seed(43)
+LambdaArray = np.logspace(-6,1,100)
 NDataArray = np.array([10,100,1000,10000,100000])
 
 p_Array = [10]

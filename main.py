@@ -19,6 +19,8 @@ depth = -1 # Single Layer
 which_h = 1 # 1 or 2 -> i**(-...)
 which_w = 0 # 0, 1 or 10 -> i**(-...)
 
+CROSS_VAL_K = 10
+
 GENERATE_RIDGE = True # generate ridge weights
 GENERATE_SGD = False # generate SGD weights
 
@@ -26,9 +28,9 @@ FINE_TUNE_RIDGE = False
 FINE_TUNE_SGD = False
 
 if __name__=='__main__':
-    # example of command
+    # example of command to execute the desired files (generate data for ridge/sgd, fine tune for ridge/sgd on all w)
     for which_w in [0,1,10]:
-        command_fine_tune = 'python benefits_fine_tuning.py '
+        command_fine_tune = 'python benefits_crossvalidation.py '
         if FINE_TUNE_RIDGE:
             command_fine_tune += '--Ridge '
         else:
@@ -42,6 +44,7 @@ if __name__=='__main__':
                               f'-d {d:d} ' +
                               f'--N_ridge {N_max_ridge:d} ' +
                               f'--N_SGD {N_max_sgd:d} ' +
+                              f'-k {CROSS_VAL_K} ' +
                               f'--depth {depth:d} ' +
                               f'--intern_dim {intern_dim:d}'
                               )

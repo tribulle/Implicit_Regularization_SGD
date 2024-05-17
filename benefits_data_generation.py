@@ -2,6 +2,7 @@ import numpy as np
 from tqdm import tqdm
 import torch
 import warnings
+import argparse
 
 from utils import *
 
@@ -36,7 +37,6 @@ which_w = 10 # 0, 1 or 10 -> i**(-...)
 
 GENERATE_RIDGE = True # generate ridge weights
 GENERATE_SGD = False # generate SGD weights
-FINE_TUNE = False # DEPRECIATED: Fine tune on 1st iteration
 USE_SAVED_PARAMS = True # use the params saved
 SAME_LR = True # all learning rates are the same in learning_rate, for faster computations
 
@@ -49,12 +49,38 @@ SAVE_SGD_ITERATE = SAVE_DIR_SGD + filename_iterates
 SAVE_RIDGE_LAMBDA = SAVE_DIR_RIDGE + f'lambda_H{which_h}_w{which_w}_d{d}.npy'
 SAVE_SGD_GAMMA = SAVE_DIR_SGD + f'gamma_H{which_h}_w{which_w}_d{d}.npy'
 
+### Argument parser
+parser = argparse.ArgumentParser(prog='Data generation for implicit regularization of SGD study')
+parser.add_argument('--SGD', action=argparse.BooleanOptionalAction, default=GENERATE_SGD,
+                    help='generate SGD data')
+parser.add_argument('--Ridge', action=argparse.BooleanOptionalAction, default=GENERATE_RIDGE,
+                    help='generate Ridge data')
+parser.add_argument('-h', default=which_h, choices=[1,2], help='matrix H1 or H2 to use')
+parser.add_argument('-w', default=which_w, choices=[0,1,10], help='true vector w0, w1 or w10')
+parser.add_argument('-d', default=d, type=int, help='dimension of the data')
+parser.add_argument('--N_ridge', default=N_max_ridge, type=int, help='Max number of data for ridge')
+parser.add_argument('--N_SGD', default=N_max_sgd, type=int, help='Max number of data for SGD')
+parser.add_argument('--depth', default=depth, type=int, help='depth of MLP (i.e nb of hidden layers), -1 for single layer')
+parser.add_argument('--intern_dim', default=intern_dim, type=int, help='intern dimension of hidden layers')
+
+args = parser.parse()
+
+GENERATE_RIDGE = args.Ridge
+GENERATE_SGD = args.SGD
+which_h = args.h
+which_w = args.w
+d = args.d
+N_max_ridge = args.N_ridge
+N_max_sgd = args.N_SGD
+depth = args.depth
+intern_dim = args.intern_dim
+
 ### Begin experiment
 # Initialization
 w_ridge = np.zeros((nb_avg, len(n_ridge), d))
 w_sgd = np.zeros((nb_avg, len(n_sgd), d))
 
-if not FINE_TUNE and USE_SAVED_PARAMS: # load best coeffs
+if USE_SAVED_PARAMS: # load best coeffs
     if GENERATE_SGD:
         try:
             load = np.load(SAVE_SGD_GAMMA)
@@ -101,23 +127,8 @@ for i in tqdm(range(nb_avg)):
     ### Solving the problem
     # Ridge
     if GENERATE_RIDGE:
-        if FINE_TUNE and i==0:# fine tune only on first iteration
-            print('\nFine-tuning Ridge...')
-            for j in tqdm(range(len(n_ridge))):
-                n = n_ridge[j]
-                best_obj, best_w, best_idx = np.inf, None, 0
-                for k in range(len(lambdas_)):
-                    w = ridge(data[:n,:], observations[:n], lambda_=lambdas_[k])
-                    obj = objective(data[:n,:], observations[:n], w)
-                    if obj < best_obj:
-                        best_obj, best_w, best_idx = obj, w, k
-                w_ridge[i,j,:] = best_w
-                lambda_[j] = lambdas_[best_idx]
-            np.save(SAVE_RIDGE_LAMBDA, np.vstack((lambda_, n_ridge)))
-            print('\nDone')
-        else:
-            for j,n in enumerate(n_ridge): # generate ridge solution for each n
-                w_ridge[i,j,:] = ridge(data[:n,:], observations[:n], lambda_=lambda_[j])
+        for j,n in enumerate(n_ridge): # generate ridge solution for each n
+            w_ridge[i,j,:] = ridge(data[:n,:], observations[:n], lambda_=lambda_[j])
 
     # SGD
     if GENERATE_SGD:
@@ -131,13 +142,23 @@ for i in tqdm(range(nb_avg)):
                                      init='zero',
                                      isBiased = False,
                                     ).to(device)
-        if FINE_TUNE and i==0:
-            print('\nFine tuning SGD...')
-            for j in tqdm(range(len(n_sgd))):
-                n = n_sgd[j]
-                best_obj, best_w, best_idx = np.inf, None, 0
-                for k, lr in enumerate(learning_rates):
-                    ws = train(model,
+        if SAME_LR: # train once, and organize weights after
+            ws = train(model,
+                      input_Tensor,
+                      output_Tensor,
+                      lossFct = nn.MSELoss(),
+                      optimizer=optimizer,
+                      epochs=N_max_ridge,
+                      batch_size=None,
+                      return_vals=False,
+                      return_ws=True,
+                      init_norm = None,
+                      lr = learning_rate[0])
+            for j,n in enumerate(n_sgd): # average the appropriate iterates
+                w_sgd[i,j,:] = np.mean(ws[n//2:n,:], axis=0)
+        else: # train for each n
+            for j,n in enumerate(n_sgd):
+                ws = train(model,
                       input_Tensor,
                       output_Tensor,
                       lossFct = nn.MSELoss(),
@@ -147,44 +168,8 @@ for i in tqdm(range(nb_avg)):
                       return_vals=False,
                       return_ws=True,
                       init_norm = None,
-                      lr = lr)
-                    w = np.mean(ws[n//2:,:], axis=0)
-                    obj = objective(data[:n,:], observations[:n], w)
-                    if obj < best_obj:
-                        best_obj, best_w, best_idx = obj, w, k
-                w_sgd[i,j,:] = best_w
-                learning_rate[j] = learning_rates[best_idx]
-            np.save(SAVE_SGD_GAMMA, np.vstack((learning_rate, n_sgd)))
-            print('\nDone')
-        else:
-            if SAME_LR: # train once, and organize weights after
-                ws = train(model,
-                          input_Tensor,
-                          output_Tensor,
-                          lossFct = nn.MSELoss(),
-                          optimizer=optimizer,
-                          epochs=N_max_ridge,
-                          batch_size=None,
-                          return_vals=False,
-                          return_ws=True,
-                          init_norm = None,
-                          lr = learning_rate[0])
-                for j,n in enumerate(n_sgd): # average the appropriate iterates
-                    w_sgd[i,j,:] = np.mean(ws[n//2:n,:], axis=0)
-            else: # train for each n
-                for j,n in enumerate(n_sgd):
-                    ws = train(model,
-                          input_Tensor,
-                          output_Tensor,
-                          lossFct = nn.MSELoss(),
-                          optimizer=optimizer,
-                          epochs=n,
-                          batch_size=None,
-                          return_vals=False,
-                          return_ws=True,
-                          init_norm = None,
-                          lr = learning_rate[j])
-                    w_sgd[i,j,:] = np.mean(ws[n//2:,:], axis=0)
+                      lr = learning_rate[j])
+                w_sgd[i,j,:] = np.mean(ws[n//2:,:], axis=0)
 
 # Save results
 if GENERATE_RIDGE:

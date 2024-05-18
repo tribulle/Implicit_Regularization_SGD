@@ -5,6 +5,7 @@ import torch
 import torch.nn as nn
 import math
 from tqdm import tqdm
+from scipy.stats import special_ortho_group
 
 DIRPATH = 'models/'
 
@@ -299,6 +300,7 @@ def generate_data(p = 200, n = 6000, sigma2 = 1, which_w=1, which_h=1):
 
     return data, observations
 
+<<<<<<< Updated upstream
 def os_command(file,
                ridge_bool=False,
                sgd_bool=False,
@@ -348,3 +350,33 @@ def suffix_filename(ridge_bool=False,
             suffix = f'_H{h}_w{w}_d{d}_depth{depth}_indim{intern_dim}'
 
     return suffix
+=======
+### Generate n_vector of dim_p with multivariate normal distribution, rotation, and random w_true
+def generate_data_V2(p = 200, n = 6000, sigma2 = 1, which_w=1, which_h=1, w_random = 1, rotation = 1):
+
+    R = special_ortho_group.rvs(p)
+    H = np.diag(np.float_power(np.arange(1,p+1), -which_h))
+    
+    if rotation == 1:
+        H = np.dot(R,H)
+    
+    data = np.random.multivariate_normal(
+        np.zeros(p),
+        H,
+        size=n) # shape (n,p)
+        
+    if w_random != 1:
+        w_true =  np.float_power(np.arange(1,p+1), -which_w)
+    else:
+        i = p**(-which_w)
+        w_true = np.full((p),i)
+        
+    observations = [np.random.normal(
+        np.dot(w_true, x),
+        sigma2)
+        for x in data]
+    
+    observations = np.array(observations)
+
+    return data, observations
+>>>>>>> Stashed changes

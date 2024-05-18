@@ -298,3 +298,53 @@ def generate_data(p = 200, n = 6000, sigma2 = 1, which_w=1, which_h=1):
     observations = np.array(observations)
 
     return data, observations
+
+def os_command(file,
+               ridge_bool=False,
+               sgd_bool=False,
+               w=0,
+               h=1,
+               d=50,
+               N_ridge=1500,
+               N_sgd=500,
+               depth=-1,
+               intern_dim=10):
+    command = 'python '
+    command += file + ' '
+    if ridge_bool:
+        command += '--Ridge '
+    else:
+        command += '--no-Ridge '
+    if sgd_bool:
+        command += '--SGD '
+    else:
+        command += '--no-SGD '
+    command += (f'-w {w:d} ' +
+                f'-H {h:d} ' +
+                f'-d {d:d} ' +
+                f'--N_ridge {N_ridge:d} ' +
+                f'--N_SGD {N_sgd:d} ' +
+                f'--depth {depth:d} ' +
+                f'--intern_dim {intern_dim:d}'
+                )
+    return command
+
+def suffix_filename(ridge_bool=False,
+                    sgd_bool=False,
+                    w=0,
+                    h=1,
+                    d=50,
+                    depth=-1,
+                    intern_dim=10):
+    assert ridge_bool or sgd_bool, 'One of sgd_bool or ridge_bool must be true'
+    assert not(ridge_bool and sgd_bool), 'Both ridge_bool and sgd_bool cannot be True'
+
+    if ridge_bool:
+        suffix = f'_H{h}_w{w}_d{d}'
+    else:
+        if depth == -1: # single layer
+            suffix = f'_H{h}_w{w}_d{d}'
+        else:
+            suffix = f'_H{h}_w{w}_d{d}_depth{depth}_indim{intern_dim}'
+
+    return suffix

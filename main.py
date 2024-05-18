@@ -2,6 +2,8 @@ import numpy as np
 import argparse
 import os
 
+from utils import os_command
+
 
 d = 200//4
 sigma2 = 1
@@ -22,52 +24,38 @@ which_w = 0 # 0, 1 or 10 -> i**(-...)
 CROSS_VAL_K = 10
 
 GENERATE_RIDGE = True # generate ridge weights
-GENERATE_SGD = False # generate SGD weights
+GENERATE_SGD = True # generate SGD weights
 
-FINE_TUNE_RIDGE = False
-FINE_TUNE_SGD = False
+FINE_TUNE_RIDGE = True
+FINE_TUNE_SGD = True
 
 if __name__=='__main__':
     # example of command to execute the desired files (generate data for ridge/sgd, fine tune for ridge/sgd on all w)
     for which_w in [0,1,10]:
-        command_fine_tune = 'python benefits_crossvalidation.py '
-        if FINE_TUNE_RIDGE:
-            command_fine_tune += '--Ridge '
-        else:
-            command_fine_tune += '--no-Ridge '
-        if FINE_TUNE_SGD:
-            command_fine_tune += '--SGD '
-        else:
-            command_fine_tune += '--no-SGD '
-        command_fine_tune += (f'-w {which_w:d} ' +
-                              f'-H {which_h:d} ' +
-                              f'-d {d:d} ' +
-                              f'--N_ridge {N_max_ridge:d} ' +
-                              f'--N_SGD {N_max_sgd:d} ' +
-                              f'-k {CROSS_VAL_K} ' +
-                              f'--depth {depth:d} ' +
-                              f'--intern_dim {intern_dim:d}'
-                              )
+        file = 'benefits_crossvalidation.py'
+        command_fine_tune = os_command(file, 
+                                       ridge_bool=FINE_TUNE_RIDGE, 
+                                       sgd_bool=FINE_TUNE_SGD, 
+                                       w=which_w, 
+                                       h=which_h, 
+                                       d=d, 
+                                       N_ridge=N_max_ridge, 
+                                       N_sgd=N_max_sgd,
+                                       depth=depth,
+                                       intern_dim=intern_dim)
 
         os.system(command_fine_tune)
 
-        command_data = 'python benefits_data_generation.py '
-        # example of command
-        if GENERATE_RIDGE:
-            command_data += '--Ridge '
-        else:
-            command_data += '--no-Ridge '
-        if GENERATE_SGD:
-            command_data += '--SGD '
-        else:
-            command_data += '--no-SGD '
-        command_data += (f'-w {which_w:d} ' +
-                              f'-H {which_h:d} ' +
-                              f'-d {d:d} ' +
-                              f'--N_ridge {N_max_ridge:d} ' +
-                              f'--N_SGD {N_max_sgd:d} ' +
-                              f'--depth {depth:d} ' +
-                              f'--intern_dim {intern_dim:d}'
-                              )
+        file = 'benefits_data_generation.py'
+        command_data = os_command(file, 
+                                  ridge_bool=FINE_TUNE_RIDGE, 
+                                  sgd_bool=FINE_TUNE_SGD, 
+                                  w=which_w, 
+                                  h=which_h, 
+                                  d=d, 
+                                  N_ridge=N_max_ridge, 
+                                  N_sgd=N_max_sgd,
+                                  depth=depth,
+                                  intern_dim=intern_dim)
 
         os.system(command_data)

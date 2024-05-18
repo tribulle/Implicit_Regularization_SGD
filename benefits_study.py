@@ -22,7 +22,7 @@ N_max_sgd = 2000//4
 n_ridge = np.floor(np.linspace(d,N_max_ridge,100)).astype(dtype=np.uint16)
 n_sgd = np.floor(np.linspace(d,N_max_sgd,20)).astype(dtype=np.uint16)
 
-all_which_h = [1,2] # 1 or 2 -> i**(-...)
+all_which_h = [1] # 1 or 2 -> i**(-...)
 all_which_w = [0,1,10] # 0, 1 or 10 -> i**(-...)
 
 intern_dim = 10
@@ -52,9 +52,11 @@ if COMPUTE_DATA_PLOT:
     # y_plot[h,w, n] contains the value n_ridge s.t loss(ridge(n_ridge)) ~= loss(sgd(n_sgd[n]))
     for i,which_h in enumerate(all_which_h):
         for j,which_w in enumerate(all_which_w):
+            suffix_ridge = suffix_filename(ridge_bool=True, w=which_w, h=which_h, d=d)
+            suffix_sgd = suffix_filename(sgd_bool=True, w=which_w, h=which_h, d=d, depth=depth, intern_dim=intern_dim)
             # Get weights
-            SAVE_RIDGE_ITERATE = SAVE_DIR_RIDGE + f'iterates_H{which_h}_w{which_w}_d{d}.npy'
-            SAVE_SGD_ITERATE = SAVE_DIR_SGD + f'iterates_H{which_h}_w{which_w}_d{d}_depth{depth}_indim{intern_dim}.npy'
+            SAVE_RIDGE_ITERATE = SAVE_DIR_RIDGE + 'iterates'+suffix_ridge+'.npy'
+            SAVE_SGD_ITERATE = SAVE_DIR_SGD + 'iterates'+suffix_sgd+'.npy'
 
             ### Load weights
             w_ridge = np.load(SAVE_RIDGE_ITERATE) # (nb_avg, len(n_ridge), d)

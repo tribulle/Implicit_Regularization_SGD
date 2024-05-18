@@ -66,12 +66,14 @@ if __name__=='__main__':
     intern_dim = args.intern_dim
 
     # saving paths
+    suffix_ridge = suffix_filename(ridge_bool=True, w=which_w, h=which_h, d=d)
+    suffix_sgd = suffix_filename(sgd_bool=True, w=which_w, h=which_h, d=d, depth=depth, intern_dim=intern_dim)
     SAVE_DIR_SGD = 'data/SGD/'
     SAVE_DIR_RIDGE = 'data/Ridge/'
-    SAVE_RIDGE_ITERATE = SAVE_DIR_RIDGE + f'iterates_H{which_h}_w{which_w}_d{d}.npy'
-    SAVE_SGD_ITERATE = SAVE_DIR_SGD + f'iterates_H{which_h}_w{which_w}_d{d}_depth{depth}_indim{intern_dim}.npy'
-    SAVE_RIDGE_LAMBDA = SAVE_DIR_RIDGE + f'lambda_H{which_h}_w{which_w}_d{d}.npy'
-    SAVE_SGD_GAMMA = SAVE_DIR_SGD + f'gamma_H{which_h}_w{which_w}_d{d}_depth{depth}_indim{intern_dim}.npy'
+    SAVE_RIDGE_ITERATE = SAVE_DIR_RIDGE + 'iterates'+suffix_ridge+'.npy'
+    SAVE_SGD_ITERATE = SAVE_DIR_SGD + 'iterates'+suffix_sgd+'.npy'
+    SAVE_RIDGE_LAMBDA = SAVE_DIR_RIDGE + 'lambda'+suffix_ridge+'.npy'
+    SAVE_SGD_GAMMA = SAVE_DIR_SGD + 'gamma'+suffix_sgd+'.npy'
 
     ### Begin experiment
     # Initialization

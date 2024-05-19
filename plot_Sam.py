@@ -134,6 +134,6 @@ for i, which_h in enumerate(all_which_h):
         axs[j].set_title(W_LABELS[j])
 
     plt.suptitle('SGD vs Ridge - effect of intern dimension; H:'+H_LABELS[i])
-    plt.savefig(SAVE_DIR_FIG+f'benefits_H{which_h}_d{d}_depth{depth}_indim{intern_dim}')
+    plt.savefig(SAVE_DIR_FIG+f'benefits_H{which_h}_d{d}_depth{depth}_indimVARIATION')
     plt.show()
     

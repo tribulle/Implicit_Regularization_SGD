@@ -22,7 +22,7 @@ N_max_sgd = 2000//4
 n_ridge = np.floor(np.linspace(d,N_max_ridge,100)).astype(dtype=np.uint16)
 n_sgd = np.floor(np.linspace(d,N_max_sgd,20)).astype(dtype=np.uint16)
 
-all_which_h = [1] # 1 or 2 -> i**(-...)
+all_which_h = [1,2] # 1 or 2 -> i**(-...)
 all_which_w = [0,1,10] # 0, 1 or 10 -> i**(-...)
 
 intern_dim = 10
@@ -141,6 +141,9 @@ for i, which_h in enumerate(all_which_h):
     axs[1].set_ylabel('Population Risk')
 
     plt.suptitle('SGD vs Ridge ; H:'+H_LABELS[i])
-    plt.savefig(SAVE_DIR_FIG+f'benefits_H{which_h}_d{d}_depth{depth}_indim{intern_dim}')
+    if depth == -1:
+        plt.savefig(SAVE_DIR_FIG+f'benefits_H{which_h}_d{d}')
+    else:
+        plt.savefig(SAVE_DIR_FIG+f'benefits_H{which_h}_d{d}_depth{depth}_indim{intern_dim}')
     plt.show()
     

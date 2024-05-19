@@ -300,7 +300,6 @@ def generate_data(p = 200, n = 6000, sigma2 = 1, which_w=1, which_h=1):
 
     return data, observations
 
-<<<<<<< Updated upstream
 def os_command(file,
                ridge_bool=False,
                sgd_bool=False,
@@ -350,7 +349,6 @@ def suffix_filename(ridge_bool=False,
             suffix = f'_H{h}_w{w}_d{d}_depth{depth}_indim{intern_dim}'
 
     return suffix
-=======
 ### Generate n_vector of dim_p with multivariate normal distribution, rotation, and random w_true
 def generate_data_V2(p = 200, n = 6000, sigma2 = 1, which_w=1, which_h=1, w_random = 1, rotation = 1):
 
@@ -379,4 +377,3 @@ def generate_data_V2(p = 200, n = 6000, sigma2 = 1, which_w=1, which_h=1, w_rand
     observations = np.array(observations)
 
     return data, observations
->>>>>>> Stashed changes

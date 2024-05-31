@@ -5,20 +5,20 @@ import torch
 
 from utils import *
 
-np.random.seed(9)
-torch.manual_seed(9)
+np.random.seed(5)
+torch.manual_seed(5)
 
 ### Parameters
 COMPUTE_DATA_PLOT = True
 
-d = 200//4
+d = 50
 sigma2 = 1
 nb_avg = 20
 
 N_samples = 10000
 
-N_max_ridge = 6000//4
-N_max_sgd = 2000//4
+N_max_ridge = 1500
+N_max_sgd = 500
 n_ridge = np.floor(np.linspace(d,N_max_ridge,100)).astype(dtype=np.uint16)
 n_sgd = np.floor(np.linspace(d,N_max_sgd,20)).astype(dtype=np.uint16)
 
@@ -44,35 +44,29 @@ W_LABELS = [r'$w^*[i]=1$', r'$w^*[i]=i^{-1}$', r'$w^*[i]=i^{-10}$']
 H_LABELS = [r'$\lambda_i=i^{-1}$', r'$\lambda_i=i^{-2}$']
 COLORS = ['tab:blue', 'tab:orange', 'tab:green']
 
+### Computation of data for the plot
 if COMPUTE_DATA_PLOT:
     ### Study
+    # Initialisation
     y_plot = np.zeros((len(intern_dims), len(all_which_h), len(all_which_w), len(n_sgd))) # (h,w, n_sgd)
     sgd_risks = np.zeros((len(intern_dims), len(all_which_h), len(all_which_w), len(n_sgd)))
     ridge_risks = np.zeros((len(all_which_h), len(all_which_w), len(n_ridge)))
     # y_plot[h,w, n] contains the value n_ridge s.t loss(ridge(n_ridge)) ~= loss(sgd(n_sgd[n]))
+
     for i,which_h in enumerate(all_which_h):
         for j,which_w in enumerate(all_which_w):
+            ### Generate new data (from same distribution)
+            data, observations = generate_data(p=d, n=N_max_ridge, sigma2=sigma2, which_w=which_w, which_h=which_h)
+
             ### RIDGE PART
             suffix_ridge = suffix_filename(ridge_bool=True, w=which_w, h=which_h, d=d)
             SAVE_RIDGE_ITERATE = SAVE_DIR_RIDGE + 'iterates'+suffix_ridge+'.npy'
             w_ridge = np.load(SAVE_RIDGE_ITERATE) # (nb_avg, len(n_ridge), d)
-            ### Generate new data (from same distribution)
-            w_true = np.float_power(np.arange(1,d+1), -which_w) # true parameter
-            H = np.diag(np.float_power(np.arange(1,d+1), -which_h))
-            data = np.random.multivariate_normal(
-                np.zeros(d),
-                H,
-                size=N_samples) # shape (n,d)    
-            observations = [np.random.normal(
-                np.dot(w_true, x),
-                np.sqrt(sigma2))
-                for x in data]
-            observations = np.array(observations) # shape (n,)
-
-            ### Compute variables of interest
+            
+            # Compute variables of interest
             ridge_errors = np.zeros((nb_avg, len(n_ridge)))
-            for k1 in range(nb_avg):
-                for k2,n in enumerate(n_ridge):
+            for k1 in range(nb_avg): # for each model
+                for k2,n in enumerate(n_ridge): # for each n
                     ridge_errors[k1,k2] = objective(data, observations, w_ridge[k1,k2,:])
 
             # Outlier detection
@@ -80,25 +74,27 @@ if COMPUTE_DATA_PLOT:
                 n_out_ridge = (ridge_errors>threshold_obj).sum()
                 ridge_risks[i, j,:] = np.mean(ridge_errors, axis=0, where=ridge_errors<threshold_obj)
                 print(f'Ridge: {n_out_ridge} outliers for H{which_h}_w{which_w}')
+            else:
+                ridge_risks[i, j,:] = np.mean(ridge_errors, axis=0)
+
+
             ### SGD PART
             for k, intern_dim in enumerate(intern_dims):
                 suffix_sgd = suffix_filename(sgd_bool=True, w=which_w, h=which_h, d=d, depth=depth, intern_dim=intern_dim)
                 SAVE_SGD_ITERATE = SAVE_DIR_SGD + 'iterates'+suffix_sgd+'.npy'
                 w_sgd = np.load(SAVE_SGD_ITERATE) # (nb_avg, len(n_sgd), d)            
                 sgd_errors = np.zeros((nb_avg, len(n_sgd)))
-                for k1 in range(nb_avg):
-                    for k2,n in enumerate(n_sgd):
+                for k1 in range(nb_avg): # for each model
+                    for k2,n in enumerate(n_sgd): # for each n
                         sgd_errors[k1,k2] = objective(data, observations, w_sgd[k1,k2,:])
             
                 # Outlier detection
                 if OUTLIER_DETECTION:
                     n_out_sgd = (sgd_errors > threshold_obj).sum()
                     sgd_risks[k, i, j,:] = np.mean(sgd_errors, axis=0, where=sgd_errors<threshold_obj)
-
                     print(f'SGD: {n_out_sgd} outliers for H{which_h}_w{which_w} indim{intern_dim} ')
                 else:
                     sgd_risks[k,i, j,:] = np.mean(sgd_errors, axis=0)
-                    ridge_risks[i, j,:] = np.mean(ridge_errors, axis=0)
 
                 # for each n_sgd, search minimal n_ridge with same risk
                 for k1,n in enumerate(n_sgd):
@@ -122,6 +118,7 @@ else:
     print('Data loaded')
 
 
+### Plot part
 for i, which_h in enumerate(all_which_h):
     fig,axs = plt.subplots(1,len(all_which_w), figsize=(16,8))
     for j,which_w in enumerate(all_which_w):
@@ -132,6 +129,7 @@ for i, which_h in enumerate(all_which_h):
         axs[j].set_xlabel(r'$N_{SGD}$')
         axs[j].set_ylabel(r'$N_{Ridge}$')
         axs[j].set_title(W_LABELS[j])
+        axs[j].set_ylim(0,N_max_ridge)
 
     plt.suptitle('SGD vs Ridge - effect of intern dimension; H:'+H_LABELS[i])
     plt.savefig(SAVE_DIR_FIG+f'benefits_H{which_h}_d{d}_depth{depth}_indimVARIATION')

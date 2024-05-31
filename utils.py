@@ -13,14 +13,6 @@ DIRPATH = 'models/'
 def objective(A,b,x):
     return ((A@x-b)**2).sum()/(A.shape[0])
 
-def objective_nonlinear(A,b,Xs):
-    x = Xs[0]
-    for k in range(1,len(Xs)):
-        x = Xs[k]@x
-    x = np.squeeze(x)
-    return ((A@x-b)**2).sum()/(A.shape[0])
-
-
 ### Ridge regression (L2 penalization)
 def ridge(A,b,lambda_):
     '''
@@ -253,7 +245,7 @@ def cross_validation(n, k=10, homogeneous=True, sizes=None):
         number of groups for cross-validation
     homogeneous: bool
         True to have homogeneous groups (in size)
-        False to generate uneven groups (see)
+        False to generate uneven groups (see sizes)
     sizes: (k,) array like of ints
         size of each train group, if homogeneous is True
 
@@ -272,6 +264,7 @@ def cross_validation(n, k=10, homogeneous=True, sizes=None):
             train_masks.append(train)
     else:
         assert k == len(sizes), f'sizes must be of length k={k}'
+        assert max(sizes) > n, f'a train group cannot be bigger than the number of points: k={max(sizes)}>n={n}'
         train_masks = []
         test_masks = []
         for i in range(k):
@@ -337,7 +330,7 @@ def suffix_filename(ridge_bool=False,
                     d=50,
                     depth=-1,
                     intern_dim=10):
-    assert ridge_bool or sgd_bool, 'One of sgd_bool or ridge_bool must be true'
+    assert ridge_bool or sgd_bool, 'One of sgd_bool or ridge_bool must be True'
     assert not(ridge_bool and sgd_bool), 'Both ridge_bool and sgd_bool cannot be True'
 
     if ridge_bool:
@@ -349,6 +342,7 @@ def suffix_filename(ridge_bool=False,
             suffix = f'_H{h}_w{w}_d{d}_depth{depth}_indim{intern_dim}'
 
     return suffix
+
 ### Generate n_vector of dim_p with multivariate normal distribution, rotation, and random w_true
 def generate_data_V2(p = 200, n = 6000, sigma2 = 1, which_w=1, which_h=1, w_random = 1, rotation = 1):
 

@@ -6,13 +6,14 @@ import argparse
 
 from utils import *
 
+# Fix the random seed
 np.random.seed(0)
 torch.manual_seed(0)
+
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 ### Parameters
-# code parameters
-d = 200
+d = 50
 sigma2 = 1
 
 CROSS_VAL_K = 10
@@ -38,6 +39,7 @@ which_w = 10 # 0, 1 or 10 -> i**(-...)
 
 FINE_TUNE_RIDGE = True
 FINE_TUNE_SGD = False
+
 
 if __name__=='__main__':
     ### Argument parser
@@ -83,21 +85,13 @@ if __name__=='__main__':
     if FINE_TUNE_SGD:
         objectives_sgd = np.zeros(len(lambdas_))
 
-    w_true = np.float_power(np.arange(1,d+1), -which_w) # true parameter
-    H = np.diag(np.float_power(np.arange(1,d+1), -which_h))
+    ### Data generation: data (N_max_ridge,d) ; observations (N_max_ridge,)
+    data, observations = generate_data(p=d, n=N_max_ridge, sigma2=sigma2, which_w=which_w, which_h=which_h)
 
-    # data generation
-    data = np.random.multivariate_normal(
-            np.zeros(d),
-            H,
-            size=N_max_ridge) # shape (N_max_ridge,d)   
-    observations = [np.random.normal(
-        np.dot(w_true, x),
-        np.sqrt(sigma2))
-        for x in data]
-    observations = np.array(observations) # shape (n,)
-
-    train_masks_ridge, test_masks_ridge = cross_validation(N_max_ridge,k=CROSS_VAL_K, homogeneous=False, sizes=np.floor(np.linspace(d,N_max_ridge,CROSS_VAL_K)).astype(dtype=np.uint16))
+    train_masks_ridge, test_masks_ridge = cross_validation(N_max_ridge,
+                                                           k=CROSS_VAL_K, 
+                                                           homogeneous=False, 
+                                                           sizes=np.floor(np.linspace(d,N_max_ridge,CROSS_VAL_K)).astype(dtype=np.uint16))
     train_masks_sgd, test_masks_sgd = cross_validation(N_max_sgd,k=CROSS_VAL_K)
 
     # for each hyperparameter, average its performances
@@ -139,7 +133,7 @@ if __name__=='__main__':
                           return_ws=True,
                           init_norm = None,
                           lr = learning_rates[j])
-                w = np.mean(ws[len(train_mask)//2:,:], axis=0)
+                w = np.mean(ws[len(train_mask)//2:,:], axis=0) # tail averaging
                 objectives_sgd[j] += objective(data[test_mask], observations[test_mask], w)
 
     # save best parameters
@@ -153,6 +147,3 @@ if __name__=='__main__':
         print(f'Best gamma: {learning_rates[idx_best]}')
         print(f'Mean objective: {objectives_sgd[idx_best]/len(learning_rates)}')
         np.save(SAVE_SGD_GAMMA, learning_rates[idx_best])
-
-
-

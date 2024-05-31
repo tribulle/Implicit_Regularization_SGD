@@ -5,20 +5,20 @@ import torch
 
 from utils import *
 
-np.random.seed(9)
-torch.manual_seed(9)
+np.random.seed(5)
+torch.manual_seed(5)
 
 ### Parameters
 COMPUTE_DATA_PLOT = True
 
-d = 200//4
+d = 50
 sigma2 = 1
 nb_avg = 20
 
-N_samples = 10000
+N_samples = 10000 # nb of points for evaluation of the models
 
-N_max_ridge = 6000//4
-N_max_sgd = 2000//4
+N_max_ridge = 1500
+N_max_sgd = 500
 n_ridge = np.floor(np.linspace(d,N_max_ridge,100)).astype(dtype=np.uint16)
 n_sgd = np.floor(np.linspace(d,N_max_sgd,20)).astype(dtype=np.uint16)
 
@@ -46,10 +46,12 @@ COLORS = ['tab:blue', 'tab:orange', 'tab:green']
 
 if COMPUTE_DATA_PLOT:
     ### Study
+    # Initialisation
     y_plot = np.zeros((len(all_which_h), len(all_which_w), len(n_sgd))) # (h,w, n_sgd)
     sgd_risks = np.zeros((len(all_which_h), len(all_which_w), len(n_sgd)))
     ridge_risks = np.zeros((len(all_which_h), len(all_which_w), len(n_ridge)))
     # y_plot[h,w, n] contains the value n_ridge s.t loss(ridge(n_ridge)) ~= loss(sgd(n_sgd[n]))
+
     for i,which_h in enumerate(all_which_h):
         for j,which_w in enumerate(all_which_w):
             suffix_ridge = suffix_filename(ridge_bool=True, w=which_w, h=which_h, d=d)
@@ -63,17 +65,7 @@ if COMPUTE_DATA_PLOT:
             w_sgd = np.load(SAVE_SGD_ITERATE) # (nb_avg, len(n_sgd), d)
 
             ### Generate new data (from same distribution)
-            w_true = np.float_power(np.arange(1,d+1), -which_w) # true parameter
-            H = np.diag(np.float_power(np.arange(1,d+1), -which_h))
-            data = np.random.multivariate_normal(
-                np.zeros(d),
-                H,
-                size=N_samples) # shape (n,d)    
-            observations = [np.random.normal(
-                np.dot(w_true, x),
-                np.sqrt(sigma2))
-                for x in data]
-            observations = np.array(observations) # shape (n,)
+            data, observations = generate_data(p=d, n=N_max_ridge, sigma2=sigma2, which_w=which_w, which_h=which_h)
 
             ### Compute variables of interest
             ridge_errors = np.zeros((nb_avg, len(n_ridge)))

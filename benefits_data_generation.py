@@ -6,29 +6,29 @@ import argparse
 
 from utils import *
 
-np.random.seed(0)
-torch.manual_seed(0)
+np.random.seed(9)
+torch.manual_seed(9)
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 ### Parameters
 # code parameters
-d = 200//4
+d = 50
 sigma2 = 1
 nb_avg = 20
 
-N_max_ridge = 6000//4 # maximal nb of datapoints
-N_max_sgd = 2000//4
+N_max_ridge = 1500 # maximal nb of datapoints
+N_max_sgd = 500
 n_ridge = np.floor(np.linspace(d,N_max_ridge,100)).astype(dtype=np.uint16) # nb of datapoints for evaluations
 n_sgd = np.floor(np.linspace(d,N_max_sgd,20)).astype(dtype=np.uint16)
 
 n_fine_tune_params = 10 # nb of hyperparameters tested
 
-lambda_ = 1e-5*np.ones(len(n_ridge))
+lambda_ = 1e-5*np.ones(len(n_ridge)) # default lambda for tests
+learning_rate = 0.001*np.ones(len(n_sgd)) # default learning rates for tests
 
 intern_dim = 10
 depth = -1 # Single Layer
 optimizer = 'SGD'
-learning_rate = 0.001*np.ones(len(n_sgd))
 
 which_h = 1 # 1 or 2 -> i**(-...)
 which_w = 10 # 0, 1 or 10 -> i**(-...)
@@ -80,7 +80,8 @@ if __name__=='__main__':
     w_ridge = np.zeros((nb_avg, len(n_ridge), d))
     w_sgd = np.zeros((nb_avg, len(n_sgd), d))
 
-    if USE_SAVED_PARAMS: # load best coeffs
+    # load best coeffs
+    if USE_SAVED_PARAMS: 
         if GENERATE_SGD:
             try:
                 load = np.load(SAVE_SGD_GAMMA)
@@ -110,19 +111,8 @@ if __name__=='__main__':
 
     # Averaging results
     for i in tqdm(range(nb_avg)):
-        ### Data generation
-        w_true = np.float_power(np.arange(1,d+1), -which_w) # true parameter
-        H = np.diag(np.float_power(np.arange(1,d+1), -which_h))
-        data = np.random.multivariate_normal(
-            np.zeros(d),
-            H,
-            size=N_max_ridge) # shape (N_max_ridge,d)
-
-        observations = [np.random.normal(
-            np.dot(w_true, x),
-            np.sqrt(sigma2))
-            for x in data]
-        observations = np.array(observations) # shape (n,)
+        ### Data generation: data (N_max_ridge,d) ; observations (N_max_ridge,)
+        data, observations = generate_data(p=d, n=N_max_ridge, sigma2=sigma2, which_w=which_w, which_h=which_h)
 
         ### Solving the problem
         # Ridge

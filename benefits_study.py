@@ -26,7 +26,7 @@ all_which_h = [1,2] # 1 or 2 -> i**(-...)
 all_which_w = [0,1,10] # 0, 1 or 10 -> i**(-...)
 
 intern_dim = 10
-depth = 1
+depth = -1
 
 OUTLIER_DETECTION = True
 threshold_obj = sigma2*4
@@ -43,6 +43,9 @@ SAVE_DIR_FIG = 'figures/'
 W_LABELS = [r'$w^*[i]=1$', r'$w^*[i]=i^{-1}$', r'$w^*[i]=i^{-10}$']
 H_LABELS = [r'$\lambda_i=i^{-1}$', r'$\lambda_i=i^{-2}$']
 COLORS = ['tab:blue', 'tab:orange', 'tab:green']
+additional_title = ''
+if depth >= 0:
+    additional_title += f'  (depth={depth} indim={intern_dim})'
 
 if COMPUTE_DATA_PLOT:
     ### Study
@@ -125,6 +128,7 @@ for i, which_h in enumerate(all_which_h):
     axs[0].legend()
     axs[0].set_xlabel(r'$N_{SGD}$')
     axs[0].set_ylabel(r'$N_{Ridge}$')
+    axs[0].set_ylim(0,N_max_ridge)
 
     axs[1].grid(color='black', which="both", linestyle='--', linewidth=0.2)
     axs[1].legend()
@@ -132,7 +136,7 @@ for i, which_h in enumerate(all_which_h):
     axs[1].set_xlabel('N')
     axs[1].set_ylabel('Population Risk')
 
-    plt.suptitle('SGD vs Ridge ; H:'+H_LABELS[i])
+    plt.suptitle('SGD vs Ridge ; H:'+H_LABELS[i]+additional_title)
     if depth == -1:
         plt.savefig(SAVE_DIR_FIG+f'benefits_H{which_h}_d{d}')
     else:

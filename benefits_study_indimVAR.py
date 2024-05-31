@@ -9,7 +9,7 @@ np.random.seed(5)
 torch.manual_seed(5)
 
 ### Parameters
-COMPUTE_DATA_PLOT = True
+COMPUTE_DATA_PLOT = False
 
 d = 50
 sigma2 = 1
@@ -120,16 +120,26 @@ else:
 
 ### Plot part
 for i, which_h in enumerate(all_which_h):
-    fig,axs = plt.subplots(1,len(all_which_w), figsize=(16,8))
+    fig,axs = plt.subplots(2,len(all_which_w), figsize=(18,8))
     for j,which_w in enumerate(all_which_w):
         for k, intern_dim in enumerate(intern_dims):
-            axs[j].plot(n_sgd, y_plot[k,i,j,:], label=f'intern_dim: {intern_dim}')
-        axs[j].grid(color='black', which="both", linestyle='--', linewidth=0.2)
-        axs[j].legend()
-        axs[j].set_xlabel(r'$N_{SGD}$')
-        axs[j].set_ylabel(r'$N_{Ridge}$')
-        axs[j].set_title(W_LABELS[j])
-        axs[j].set_ylim(0,N_max_ridge)
+            axs[0,j].plot(n_sgd, y_plot[k,i,j,:], label=f'intern_dim: {intern_dim}')
+            axs[1,j].plot(n_sgd, sgd_risks[k,i,j,:], label=f'SGD - intern_dim: {intern_dim}')
+        axs[1,j].plot(n_ridge, ridge_risks[i,j,:], linestyle='--', label=f'Ridge')
+        
+        axs[0,j].grid(color='black', which="both", linestyle='--', linewidth=0.2)
+        axs[0,j].legend()
+        axs[0,j].set_xlabel(r'$N_{SGD}$')
+        axs[0,j].set_ylabel(r'$N_{Ridge}$')
+        axs[0,j].set_title(W_LABELS[j])
+        axs[0,j].set_ylim(0,N_max_ridge)
+
+        axs[1,j].grid(color='black', which="both", linestyle='--', linewidth=0.2)
+        axs[1,j].legend()
+        axs[1,j].set_xlabel(r'$N$')
+        axs[1,j].set_ylabel(r'Loss')
+        axs[1,j].set_yscale('log')
+        #axs[1,j].set_ylim(sigma2*0.9,threshold_obj)
 
     plt.suptitle('SGD vs Ridge - effect of intern dimension; H:'+H_LABELS[i])
     plt.savefig(SAVE_DIR_FIG+f'benefits_H{which_h}_d{d}_depth{depth}_indimVARIATION')

@@ -18,8 +18,8 @@ sigma2 = 1
 
 CROSS_VAL_K = 10
 
-N_max_ridge = int(6000/(1+1/CROSS_VAL_K))
-N_max_sgd = int(2000*(1+1/CROSS_VAL_K))
+N_max_ridge = 1500
+N_max_sgd = 500
 
 n_ridge = np.floor(np.linspace(d,N_max_ridge,100)).astype(dtype=np.uint16)
 n_sgd = np.floor(np.linspace(d,N_max_sgd,20)).astype(dtype=np.uint16)
@@ -86,13 +86,16 @@ if __name__=='__main__':
         objectives_sgd = np.zeros(len(lambdas_))
 
     ### Data generation: data (N_max_ridge,d) ; observations (N_max_ridge,)
-    data, observations = generate_data(p=d, n=N_max_ridge, sigma2=sigma2, which_w=which_w, which_h=which_h)
+    data, observations = generate_data(p=d, n=2*N_max_ridge, sigma2=sigma2, which_w=which_w, which_h=which_h)
 
-    train_masks_ridge, test_masks_ridge = cross_validation(N_max_ridge,
+    train_masks_ridge, test_masks_ridge = cross_validation(2*N_max_ridge,
                                                            k=CROSS_VAL_K, 
                                                            homogeneous=False, 
                                                            sizes=np.floor(np.linspace(d,N_max_ridge,CROSS_VAL_K)).astype(dtype=np.uint16))
-    train_masks_sgd, test_masks_sgd = cross_validation(N_max_sgd,k=CROSS_VAL_K)
+    train_masks_sgd, test_masks_sgd = cross_validation(2*N_max_sgd,
+                                                       k=CROSS_VAL_K,
+                                                       homogeneous=False,
+                                                       sizes=np.floor(np.linspace(d,N_max_sgd,CROSS_VAL_K)).astype(dtype=np.uint16))
 
     # for each hyperparameter, average its performances
     for j in tqdm(range(n_fine_tune_params)):

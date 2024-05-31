@@ -45,32 +45,6 @@ def ridge(A,b,lambda_):
     else: # multi-dim
         raise NotImplementedError('Penalization per dimension not yet implemented')
     return res
-
-def solve_nonlinear_ridge(Ws, b, lambda_):
-    '''
-    Solves min 1/n*||Ws[-1]@...@W[0]*x - b||^2 + ||lambda_*x||^2
-
-    Parameters
-    ----------
-    Ws: list of (n,d) arrays
-        Weight matrices
-    
-    b: (n,) array
-        Observations
-    
-    lambda_: number, (n,) or (n,d) array
-        L2 penalization parameter
-    
-    Returns
-    -------
-    x: (d,) array
-        The solution of the non-linear ridge regression (see above)
-    '''
-    A = Ws[0]
-    for k in range(1,len(Ws)):
-        A = Ws[k]@A
-    x = ridge(A,b,lambda_)
-    return x
         
 ### MLP Can be a SLN with depth = -1
 class MultiLayerPerceptron(nn.Sequential):
@@ -264,7 +238,7 @@ def cross_validation(n, k=10, homogeneous=True, sizes=None):
             train_masks.append(train)
     else:
         assert k == len(sizes), f'sizes must be of length k={k}'
-        assert max(sizes) > n, f'a train group cannot be bigger than the number of points: k={max(sizes)}>n={n}'
+        assert max(sizes) < n, f'a train group cannot be bigger than the number of points: k={max(sizes)}>n={n}'
         train_masks = []
         test_masks = []
         for i in range(k):

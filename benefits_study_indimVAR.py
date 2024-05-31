@@ -9,7 +9,7 @@ np.random.seed(5)
 torch.manual_seed(5)
 
 ### Parameters
-COMPUTE_DATA_PLOT = False
+COMPUTE_DATA_PLOT = True
 
 d = 50
 sigma2 = 1
@@ -141,7 +141,7 @@ for i, which_h in enumerate(all_which_h):
         axs[1,j].set_yscale('log')
         #axs[1,j].set_ylim(sigma2*0.9,threshold_obj)
 
-    plt.suptitle('SGD vs Ridge - effect of intern dimension; H:'+H_LABELS[i])
+    plt.suptitle('SGD vs Ridge - effect of intern dimension; H:'+H_LABELS[which_h-1])
     plt.savefig(SAVE_DIR_FIG+f'benefits_H{which_h}_d{d}_depth{depth}_indimVARIATION')
     plt.show()
     

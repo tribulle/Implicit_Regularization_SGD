@@ -27,12 +27,11 @@ n_sgd = np.floor(np.linspace(d,N_max_sgd,20)).astype(dtype=np.uint16)
 n_fine_tune_params = 10 # nb of hyperparameters tested
 
 lambdas_ = np.logspace(-5,-1,n_fine_tune_params, base=10.0) # range of parameters
-learning_rates = np.logspace(-6,-2,n_fine_tune_params)
+learning_rates = np.logspace(-4,0,n_fine_tune_params)
 
 intern_dim = 10
 depth = -1 # Single Layer
 optimizer = 'SGD'
-learning_rates = np.logspace(-6,-2,n_fine_tune_params)
 
 which_h = 2 # 1 or 2 -> i**(-...)
 which_w = 10 # 0, 1 or 10 -> i**(-...)
@@ -141,12 +140,12 @@ if __name__=='__main__':
 
     # save best parameters
     if FINE_TUNE_RIDGE:
-        idx_best = np.argmin(objectives_ridge)
+        idx_best = np.nanargmin(objectives_ridge)
         print(f'Best lambda_: {lambdas_[idx_best]}')
         print(f'Mean objective: {objectives_ridge[idx_best]/len(lambdas_)}')
         np.save(SAVE_RIDGE_LAMBDA, lambdas_[idx_best])
     if FINE_TUNE_SGD:
-        idx_best = np.argmin(objectives_sgd)
+        idx_best = np.nanargmin(objectives_sgd)
         print(f'Best gamma: {learning_rates[idx_best]}')
         print(f'Mean objective: {objectives_sgd[idx_best]/len(learning_rates)}')
         np.save(SAVE_SGD_GAMMA, learning_rates[idx_best])

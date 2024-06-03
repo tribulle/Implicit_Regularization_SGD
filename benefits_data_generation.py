@@ -34,7 +34,7 @@ which_h = 1 # 1 or 2 -> i**(-...)
 which_w = 10 # 0, 1 or 10 -> i**(-...)
 
 GENERATE_RIDGE = True # generate ridge weights
-GENERATE_SGD = False # generate SGD weights
+GENERATE_SGD = True # generate SGD weights
 USE_SAVED_PARAMS = True # use the params saved
 SAME_LR = True # all learning rates are the same in learning_rate, for faster computations
 
@@ -148,9 +148,9 @@ if __name__=='__main__':
                     w_sgd[i,j,:] = np.mean(ws[n//2:n,:], axis=0)
             else: # train for each n
                 for j,n in enumerate(n_sgd):
-                    ws = train(model,
-                          input_Tensor,
-                          output_Tensor,
+                    ws = train_v2(model,
+                          input_Tensor[:n],
+                          output_Tensor[:n],
                           lossFct = nn.MSELoss(),
                           optimizer=optimizer,
                           epochs=n,

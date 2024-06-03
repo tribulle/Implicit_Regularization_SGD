@@ -3,6 +3,7 @@ from tqdm import tqdm
 import torch
 import warnings
 import argparse
+from math import ceil
 
 from utils import *
 
@@ -16,7 +17,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 d = 50
 sigma2 = 1
 
-CROSS_VAL_K = 5
+CROSS_VAL_K = 10
 
 N_max_ridge = 1500
 N_max_sgd = 500
@@ -26,18 +27,18 @@ n_sgd = np.floor(np.linspace(d,N_max_sgd,20)).astype(dtype=np.uint16)
 
 n_fine_tune_params = 10 # nb of hyperparameters tested
 
-lambdas_ = np.logspace(-3,0,n_fine_tune_params, base=10.0) # range of parameters
-learning_rates = np.logspace(-4,0,n_fine_tune_params)
+lambdas_ = np.logspace(-4,0,n_fine_tune_params, base=10.0) # range of parameters
+learning_rates = np.logspace(-4,0,n_fine_tune_params, base=10.0)
 
 intern_dim = 10
 depth = -1 # Single Layer
 optimizer = 'SGD'
 
 which_h = 1 # 1 or 2 -> i**(-...)
-which_w = 0 # 0, 1 or 10 -> i**(-...)
+which_w = 10 # 0, 1 or 10 -> i**(-...)
 
 FINE_TUNE_RIDGE = True
-FINE_TUNE_SGD = False
+FINE_TUNE_SGD = True
 
 
 if __name__=='__main__':
@@ -85,12 +86,12 @@ if __name__=='__main__':
         objectives_sgd = np.zeros((len(n_sgd), n_fine_tune_params))
 
     ### Data generation: data (N_max_ridge,d) ; observations (N_max_ridge,)
-    data, observations = generate_data(p=d, n=int((1+1/CROSS_VAL_K)*N_max_ridge), sigma2=sigma2, which_w=which_w, which_h=which_h)
+    data, observations = generate_data(p=d, n=ceil(CROSS_VAL_K/(CROSS_VAL_K-1)*N_max_ridge), sigma2=sigma2, which_w=which_w, which_h=which_h)
 
     if FINE_TUNE_RIDGE:
         for k in tqdm(range(len(n_ridge))):
             n = n_ridge[k]
-            train_masks_ridge, test_masks_ridge = cross_validation(int((1+1/CROSS_VAL_K)*n),
+            train_masks_ridge, test_masks_ridge = cross_validation(ceil(CROSS_VAL_K/(CROSS_VAL_K-1)*n),
                                                            k=CROSS_VAL_K, 
                                                            homogeneous=True)
             # Cross validation
@@ -107,8 +108,8 @@ if __name__=='__main__':
     if FINE_TUNE_SGD:
         for k in tqdm(range(len(n_sgd))):
             n = n_sgd[k]
-            train_masks_sgd, test_masks_sgd = cross_validation(int((1+1/CROSS_VAL_K)*n),
-                                                   k=CROSS_VAL_K, 
+            train_masks_sgd, test_masks_sgd = cross_validation(ceil(CROSS_VAL_K/(CROSS_VAL_K-1)*n),
+                                                   k=CROSS_VAL_K,
                                                    homogeneous=True)
             for i in range(CROSS_VAL_K):
                 train_mask = train_masks_sgd[i]
@@ -125,7 +126,7 @@ if __name__=='__main__':
                                             isBiased = False,
                                         ).to(device)                  
 
-                    ws = train(model,
+                    ws = train_v2(model,
                               input_Tensor,
                               output_Tensor,
                               lossFct = nn.MSELoss(),

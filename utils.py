@@ -206,6 +206,72 @@ def train(model, input_data, output_data, untilConv = -1, lossFct = 'MSE', optim
         return ws
     elif return_ws and return_vals:
         return vals, ws
+    
+def train_v2(model, input_data, output_data, untilConv = -1, lossFct = 'MSE', optimizer = 'SGD', lr=0.001, epochs = 20, batch_size=None, return_vals = 'error', return_ws = False, init_norm = None, save = True, debug = False, savename='model.pt'):
+    '''
+    return_vals: 'error', 'margin' or None/False
+    '''
+    if optimizer == 'SGD':
+        optimizer = torch.optim.SGD(model.parameters(), lr=lr)
+    elif optimizer == 'ASGD':
+        optimizer = torch.optim.ASGD(model.parameters(), lr=lr)
+    elif optimizer == 'GD':
+        optimizer = GD(model.parameters(), lr=lr)
+    
+    if lossFct == 'MSE' : lossFct = nn.MSELoss()
+    
+    post_loss = 0
+    n,d = input_data.shape
+
+    if init_norm is not None:
+        model.reset_init_weights_biases(init_norm)
+    
+    if return_vals:
+        vals = np.zeros(epochs)
+    
+    if return_ws:
+        ws = np.zeros((epochs,d))
+        
+    if batch_size is not None:
+        n_batches = n//batch_size
+
+    for i in range(epochs):
+        rand_idx = torch.randperm(n) # permutation of data samples
+        
+        y_pred = model(input_data[rand_idx[i],:]).squeeze_()
+        loss = lossFct(y_pred, output_data[rand_idx[i]])
+        
+        if return_ws or return_vals=='margin':
+            w = get_param(model,d).detach()
+            ws[i,:] = w.cpu()
+
+        if return_vals == 'error':
+            vals[i] = loss.item()
+
+        optimizer.zero_grad()
+        loss.backward()
+        
+        if abs(post_loss - loss.item()) <=untilConv:
+            print("Convergence")
+            break
+        post_loss = loss.item()
+        
+        optimizer.step()
+
+        if debug:
+            if (i+1)%(epochs/debug) == 0:
+                print(f"Epoch: {i+1}   Loss: {loss.item():.3e}")
+
+    if save:
+        torch.save(model.state_dict(), DIRPATH+savename)
+    
+    if return_vals and not return_ws:
+        return vals
+    elif return_ws and not return_vals:
+        return ws
+    elif return_ws and return_vals:
+        return vals, ws
+
 
 def cross_validation(n, k=10, homogeneous=True, sizes=None):
     '''

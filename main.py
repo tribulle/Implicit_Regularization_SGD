@@ -21,14 +21,14 @@ which_w = 0 # 0, 1 or 10 -> i**(-...)
 CROSS_VAL_K = 10
 
 GENERATE_RIDGE = True # generate ridge weights
-GENERATE_SGD = False # generate SGD weights
+GENERATE_SGD = True # generate SGD weights
 
 FINE_TUNE_RIDGE = True
-FINE_TUNE_SGD = False
+FINE_TUNE_SGD = True
 
 if __name__=='__main__':
     # example of command to execute the desired files (generate data for ridge/sgd, fine tune for ridge/sgd on all w and all h)
-    for which_h in [1,2]:
+    for which_h in [1]:
         for which_w in [0,1,10]:
             #for intern_dim in [10,30,50,80,100]:
                 file = 'benefits_crossvalidation.py'
@@ -47,8 +47,8 @@ if __name__=='__main__':
 
                 file = 'benefits_data_generation.py'
                 command_data = os_command(file, 
-                                          ridge_bool=FINE_TUNE_RIDGE, 
-                                          sgd_bool=FINE_TUNE_SGD, 
+                                          ridge_bool=GENERATE_RIDGE, 
+                                          sgd_bool=GENERATE_SGD, 
                                           w=which_w, 
                                           h=which_h, 
                                           d=d, 

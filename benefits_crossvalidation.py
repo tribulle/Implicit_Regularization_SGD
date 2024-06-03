@@ -26,18 +26,18 @@ n_sgd = np.floor(np.linspace(d,N_max_sgd,20)).astype(dtype=np.uint16)
 
 n_fine_tune_params = 10 # nb of hyperparameters tested
 
-lambdas_ = np.logspace(-4,0,n_fine_tune_params, base=10.0) # range of parameters
-learning_rates = np.logspace(-4,0,n_fine_tune_params)
+lambdas_ = np.logspace(-3,0,n_fine_tune_params, base=10.0) # range of parameters
+learning_rates = np.logspace(-3,0,n_fine_tune_params)
 
 intern_dim = 10
 depth = -1 # Single Layer
 optimizer = 'SGD'
 
-which_h = 2 # 1 or 2 -> i**(-...)
+which_h = 1 # 1 or 2 -> i**(-...)
 which_w = 10 # 0, 1 or 10 -> i**(-...)
 
-FINE_TUNE_RIDGE = True
-FINE_TUNE_SGD = False
+FINE_TUNE_RIDGE = False
+FINE_TUNE_SGD = True
 
 
 if __name__=='__main__':
@@ -124,7 +124,7 @@ if __name__=='__main__':
                 input_Tensor = torch.from_numpy(data[train_mask]).to(device, dtype=torch.float32)
                 output_Tensor = torch.from_numpy(observations[train_mask]).to(device, dtype=torch.float32)
 
-                ws = train(model,
+                ws = train_v2(model,
                           input_Tensor,
                           output_Tensor,
                           lossFct = nn.MSELoss(),

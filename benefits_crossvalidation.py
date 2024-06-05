@@ -119,7 +119,7 @@ if __name__=='__main__':
     # for each hyperparameter, average its performances
     for j in tqdm(range(n_fine_tune_params_ridge)):
 
-        if not Ridge_crossVal:
+        if FINE_TUNE_RIDGE and not Ridge_crossVal:
             w = ridge(data_ridge_train, observations_ridge_train, lambda_=lambdas_[j])
             objectives_ridge[j] = objective(data_ridge, observations_ridge, w)
             

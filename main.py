@@ -9,8 +9,8 @@ d = 50
 sigma2 = 1
 nb_avg = 10
 
-N_max_ridge = 1500
-N_max_sgd = 500
+N_max_ridge = 6000
+N_max_sgd = 2000
 
 intern_dim = 10
 depth = -1
@@ -19,7 +19,7 @@ which_h = 2 # 1 or 2 -> i**(-...)
 which_w = 0 # 0, 1 or 10 -> i**(-...)
 
 CROSS_VAL_K = 10
-HOMOGENEOUS = False
+HOMOGENEOUS = True
 
 GENERATE_RIDGE = True # generate ridge weights
 GENERATE_SGD = True # generate SGD weights
@@ -31,7 +31,7 @@ n_fine_tune_params = 10
 
 if __name__=='__main__':
     # example of command to execute the desired files (generate data for ridge/sgd, fine tune for ridge/sgd on all w and all h)
-    for which_h in [1,2]:
+    for which_h in [2]:
         for which_w in [0,1,10]:
             #for intern_dim in [10,30,50,80,100]:
             if FINE_TUNE_PER_N:

@@ -19,6 +19,7 @@ sigma2 = 1
 
 CROSS_VAL_K = 10
 HOMOGENEOUS = False # homogeneous => tune only on N_max samples, non-homogeneous => tune on various n once
+Ridge_crossVal = False # Ridge_crossVal => tune the lambda with the cross_val method
 
 N_max_ridge = 1500
 N_max_sgd = 500
@@ -27,9 +28,10 @@ n_ridge = np.floor(np.linspace(d,N_max_ridge,100)).astype(dtype=np.uint16)
 n_sgd = np.floor(np.linspace(d,N_max_sgd,20)).astype(dtype=np.uint16)
 
 n_fine_tune_params = 10 # nb of hyperparameters tested
-
-lambdas_ = np.logspace(-1,2,n_fine_tune_params, base=10.0) # range of parameters
-learning_rates = np.logspace(-3,-1,n_fine_tune_params)
+n_fine_tune_params_ridge= n_fine_tune_params *100
+n_fine_tune_params_sgd=n_fine_tune_params
+lambdas_ = np.logspace(-3,4,n_fine_tune_params_ridge, base=10.0) # range of parameters
+learning_rates = np.logspace(-3,-1,n_fine_tune_params_sgd)
 
 intern_dim = 10
 depth = -1 # Single Layer
@@ -89,7 +91,7 @@ if __name__=='__main__':
     if FINE_TUNE_RIDGE:
         objectives_ridge = np.zeros(len(lambdas_))
     if FINE_TUNE_SGD:
-        objectives_sgd = np.zeros(len(lambdas_))
+        objectives_sgd = np.zeros(len(learning_rates))
 
     ### Data generation: data (N_max_ridge,d) ; observations (N_max_ridge,)
     data, observations = generate_data(p=d, n=2*N_max_ridge, sigma2=sigma2, which_w=which_w, which_h=which_h)
@@ -110,21 +112,28 @@ if __name__=='__main__':
         train_masks_sgd, test_masks_sgd = cross_validation(ceil(CROSS_VAL_K/(CROSS_VAL_K-1)*N_max_sgd),
                                                            k=CROSS_VAL_K,
                                                            homogeneous=True)
-
+        
+    if not Ridge_crossVal:
+        data_ridge, observations_ridge = generate_data(p=d, n=100000, sigma2=sigma2, which_w=which_w, which_h=which_h)
+        data_ridge_train, observations_ridge_train = generate_data(p=d, n=400, sigma2=sigma2, which_w=which_w, which_h=which_h)
     # for each hyperparameter, average its performances
-    for j in tqdm(range(n_fine_tune_params)):
+    for j in tqdm(range(n_fine_tune_params_ridge)):
 
+        if not Ridge_crossVal:
+            w = ridge(data_ridge_train, observations_ridge_train, lambda_=lambdas_[j])
+            objectives_ridge[j] = objective(data_ridge, observations_ridge, w)
+            
         # Cross validation
         for i in range(CROSS_VAL_K):
             ### Solving the problem
-            if FINE_TUNE_RIDGE:
+            if FINE_TUNE_RIDGE and Ridge_crossVal:
                 train_mask = train_masks_ridge[i]
                 test_mask = test_masks_ridge[i]
                 # train on first part of data
                 w = ridge(data[train_mask], observations[train_mask], lambda_=lambdas_[j])
                 # evaluate on what remains
                 objectives_ridge[j] += objective(data[test_mask], observations[test_mask], w)
-
+    for j in tqdm(range(n_fine_tune_params_sgd)):
             if FINE_TUNE_SGD:
                 train_mask = train_masks_sgd[i]
                 test_mask = test_masks_sgd[i]

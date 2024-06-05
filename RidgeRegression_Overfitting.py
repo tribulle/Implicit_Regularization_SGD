@@ -4,22 +4,23 @@ from tqdm import tqdm
 import torch
 import os
 os.system("utils.py")
+from utils import *
 
 
 np.random.seed(43)
-LambdaArray = np.logspace(-3,2,100)
-NDataArray = np.array([100000])
+LambdaArray = np.logspace(-1,4,100)
+NDataArray = np.array([150000])
 
 p_Array = [50]
-n_Array = [200]
+n_Array = [1500]
 sigma2_Array = [2]
 all_which_h = [1,2] # 1 or 2 -> i**(-...)
 all_which_w = [0,1,10] # 0, 1 or 10 -> i**(-...)
 
 nb_avg_test = 1
-nb_avg_train = 4
+nb_avg_train = 1
 w_random = 0
-rotation = 1
+rotation = 0
 
 def plot_RidgeRegression(modelErrorArray, X, modelName, p, n, sigma2, which_w, which_h, w_random, rotation):
     fig1,ax1 = plt.subplots(1,1)
@@ -36,7 +37,7 @@ def plot_RidgeRegression(modelErrorArray, X, modelName, p, n, sigma2, which_w, w
     
 def train_RidgeRegression(LambdaArray, p, n, sigma2, which_w, which_h, w_random, rotation):
     
-    data_ , obs_ = generate_data_V2(p = p, n = n, sigma2 = sigma2, which_w = which_w, which_h = which_h, w_random = w_random, rotation = rotation)
+    data_ , obs_ = generate_data(p = p, n = n, sigma2 = sigma2, which_w = which_w, which_h = which_h)
     
     Ridge_W = np.zeros((LambdaArray.shape[0],p))
     for i in range(LambdaArray.shape[0]):
@@ -52,7 +53,7 @@ def tests_RidgeRegression(nb_avg, Ridge_W, NDataArray, p,n,sigma2,which_w, which
         population_risk = np.zeros((nb_avg,Ridge_W.shape[0]))
         for k in range(nb_avg):
             
-            data_ , obs_ = generate_data_V2(p = p, n = n, sigma2 = sigma2, which_w = which_w, which_h = which_h, w_random = w_random, rotation = rotation)
+            data_ , obs_ = generate_data(p = p, n = n, sigma2 = sigma2, which_w = which_w, which_h = which_h)
             for c in range(Ridge_W.shape[0]):
                 
                 population_risk[k,c] = objective(data_, obs_, Ridge_W[c])

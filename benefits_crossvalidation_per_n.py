@@ -25,7 +25,7 @@ N_max_sgd = 500
 n_ridge = np.floor(np.linspace(d,N_max_ridge,100)).astype(dtype=np.uint16)
 n_sgd = np.floor(np.linspace(d,N_max_sgd,20)).astype(dtype=np.uint16)
 
-n_fine_tune_params = 10 # nb of hyperparameters tested
+n_fine_tune_params = 15 # nb of hyperparameters tested
 
 lambdas_ = np.logspace(-4,0,n_fine_tune_params, base=10.0) # range of parameters
 learning_rates = np.logspace(-4,0,n_fine_tune_params, base=10.0)
@@ -35,10 +35,11 @@ depth = -1 # Single Layer
 optimizer = 'SGD'
 
 which_h = 1 # 1 or 2 -> i**(-...)
-which_w = 10 # 0, 1 or 10 -> i**(-...)
+which_w = 1 # 0, 1 or 10 -> i**(-...)
 
-FINE_TUNE_RIDGE = True
+FINE_TUNE_RIDGE = False
 FINE_TUNE_SGD = True
+HOMOGENEOUS = False
 
 
 if __name__=='__main__':
@@ -54,6 +55,8 @@ if __name__=='__main__':
     parser.add_argument('--N_ridge', default=N_max_ridge, type=int, help='Max number of data for ridge')
     parser.add_argument('--N_SGD', default=N_max_sgd, type=int, help='Max number of data for SGD')
     parser.add_argument('-k', default=CROSS_VAL_K, type=int, help='k for k fold cross-validation')
+    parser.add_argument('--homogeneous',action=argparse.BooleanOptionalAction, default=HOMOGENEOUS,
+                        help='homogeneous to tune on N_max only, no-homogeneous to tune on various n')
     parser.add_argument('--depth', default=depth, type=int, help='depth of MLP (i.e nb of hidden layers), -1 for single layer')
     parser.add_argument('--intern_dim', default=intern_dim, type=int, help='intern dimension of hidden layers')
 
@@ -111,6 +114,10 @@ if __name__=='__main__':
             train_masks_sgd, test_masks_sgd = cross_validation(ceil(CROSS_VAL_K/(CROSS_VAL_K-1)*n),
                                                    k=CROSS_VAL_K,
                                                    homogeneous=True)
+            #train_masks_sgd, test_masks_sgd = cross_validation(2*N_max_sgd,# try to crossval on more data (train on n, validate on n)
+            #                           k=CROSS_VAL_K,
+            #                           homogeneous=False,
+            #                           sizes=[n]*CROSS_VAL_K)
             for i in range(CROSS_VAL_K):
                 train_mask = train_masks_sgd[i]
                 test_mask = test_masks_sgd[i]
@@ -144,10 +151,10 @@ if __name__=='__main__':
     if FINE_TUNE_RIDGE:
         idx_best = np.nanargmin(objectives_ridge, axis=1)
         print(f'Best lambdas: {lambdas_[idx_best]}')
-        print(f'Mean objectives: {np.mean(objectives_ridge[idx_best]/n_fine_tune_params)}')
+        print(f'Mean objectives: {np.nanmean(objectives_ridge[idx_best]/n_fine_tune_params)}')
         np.save(SAVE_RIDGE_LAMBDA, lambdas_[idx_best])
     if FINE_TUNE_SGD:
         idx_best = np.nanargmin(objectives_sgd, axis=1)
         print(f'Best gammas: {learning_rates[idx_best]}')
-        print(f'Mean objectives: {np.mean(objectives_sgd[idx_best]/n_fine_tune_params)}')
+        print(f'Mean objectives: {np.nanmean(objectives_sgd[idx_best]/n_fine_tune_params)}')
         np.save(SAVE_SGD_GAMMA, learning_rates[idx_best])

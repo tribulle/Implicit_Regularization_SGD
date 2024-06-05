@@ -21,8 +21,6 @@ N_max_sgd = 500
 n_ridge = np.floor(np.linspace(d,N_max_ridge,100)).astype(dtype=np.uint16) # nb of datapoints for evaluations
 n_sgd = np.floor(np.linspace(d,N_max_sgd,20)).astype(dtype=np.uint16)
 
-n_fine_tune_params = 10 # nb of hyperparameters tested
-
 lambda_ = 1e-5*np.ones(len(n_ridge)) # default lambda for tests
 learning_rate = 0.001*np.ones(len(n_sgd)) # default learning rates for tests
 
@@ -31,9 +29,9 @@ depth = -1 # Single Layer
 optimizer = 'SGD'
 
 which_h = 1 # 1 or 2 -> i**(-...)
-which_w = 10 # 0, 1 or 10 -> i**(-...)
+which_w = 1 # 0, 1 or 10 -> i**(-...)
 
-GENERATE_RIDGE = True # generate ridge weights
+GENERATE_RIDGE = False # generate ridge weights
 GENERATE_SGD = True # generate SGD weights
 USE_SAVED_PARAMS = True # use the params saved
 SAME_LR = True # all learning rates are the same in learning_rate, for faster computations

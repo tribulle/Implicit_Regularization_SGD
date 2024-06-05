@@ -37,11 +37,11 @@ def ridge(A,b,lambda_):
     n,d = A.shape
     if isinstance(lambda_, numbers.Number): # real number
         if d<=n: # underparametrized
-            inv = np.linalg.inv(2/n*A.T@A+2*lambda_*np.eye(d))
-            res = inv@(A.T)@b*2/n
+            inv = np.linalg.inv(A.T@A+lambda_*np.eye(d)) # test for ridge classic
+            res = inv@(A.T)@b
         else: # overparametrized
-            inv = np.linalg.inv(2/n*A@(A.T)+2*lambda_*np.eye(n))
-            res = A.T@inv@b*2/n
+            inv = np.linalg.inv(A@(A.T)+lambda_*np.eye(n))
+            res = A.T@inv@b
     else: # multi-dim
         raise NotImplementedError('Penalization per dimension not yet implemented')
     return res
@@ -342,7 +342,10 @@ def os_command(file,
                N_ridge=1500,
                N_sgd=500,
                depth=-1,
-               intern_dim=10):
+               intern_dim=10,
+               k=None,
+               homogeneous=None,
+               n_params=None):
     command = 'python '
     command += file + ' '
     if ridge_bool:
@@ -361,6 +364,15 @@ def os_command(file,
                 f'--depth {depth:d} ' +
                 f'--intern_dim {intern_dim:d}'
                 )
+    if k is not None:
+        command += f' -k {k:d}'
+    if homogeneous is not None:
+        if homogeneous:
+            command += f' --homogeneous'
+        else:
+            command += f' --no-homogeneous'
+    if n_params is not None:
+        command += f' --n_params {n_params:d}'
     return command
 
 def suffix_filename(ridge_bool=False,

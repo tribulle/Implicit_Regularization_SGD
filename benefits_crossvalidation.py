@@ -3,6 +3,7 @@ from tqdm import tqdm
 import torch
 import warnings
 import argparse
+from math import ceil
 
 from utils import *
 
@@ -17,6 +18,7 @@ d = 50
 sigma2 = 1
 
 CROSS_VAL_K = 10
+HOMOGENEOUS = False # homogeneous => tune only on N_max samples, non-homogeneous => tune on various n once
 
 N_max_ridge = 1500
 N_max_sgd = 500
@@ -26,17 +28,17 @@ n_sgd = np.floor(np.linspace(d,N_max_sgd,20)).astype(dtype=np.uint16)
 
 n_fine_tune_params = 10 # nb of hyperparameters tested
 
-lambdas_ = np.logspace(-3,0,n_fine_tune_params, base=10.0) # range of parameters
-learning_rates = np.logspace(-3,0,n_fine_tune_params)
+lambdas_ = np.logspace(-1,2,n_fine_tune_params, base=10.0) # range of parameters
+learning_rates = np.logspace(-3,-1,n_fine_tune_params)
 
 intern_dim = 10
 depth = -1 # Single Layer
 optimizer = 'SGD'
 
 which_h = 1 # 1 or 2 -> i**(-...)
-which_w = 10 # 0, 1 or 10 -> i**(-...)
+which_w = 1 # 0, 1 or 10 -> i**(-...)
 
-FINE_TUNE_RIDGE = False
+FINE_TUNE_RIDGE = True
 FINE_TUNE_SGD = True
 
 
@@ -53,6 +55,9 @@ if __name__=='__main__':
     parser.add_argument('--N_ridge', default=N_max_ridge, type=int, help='Max number of data for ridge')
     parser.add_argument('--N_SGD', default=N_max_sgd, type=int, help='Max number of data for SGD')
     parser.add_argument('-k', default=CROSS_VAL_K, type=int, help='k for k fold cross-validation')
+    parser.add_argument('--homogeneous',action=argparse.BooleanOptionalAction, default=HOMOGENEOUS,
+                        help='homogeneous to tune on N_max only, no-homogeneous to tune on various n')
+    parser.add_argument('--n_params', type=int, default=n_fine_tune_params, help='Number of hyperparameters to test')
     parser.add_argument('--depth', default=depth, type=int, help='depth of MLP (i.e nb of hidden layers), -1 for single layer')
     parser.add_argument('--intern_dim', default=intern_dim, type=int, help='intern dimension of hidden layers')
 
@@ -68,6 +73,8 @@ if __name__=='__main__':
     depth = args.depth
     intern_dim = args.intern_dim
     CROSS_VAL_K = args.k
+    HOMOGENEOUS = args.homogeneous
+    n_fine_tune_params = args.n_params
 
     # saving paths
     suffix_ridge = suffix_filename(ridge_bool=True, w=which_w, h=which_h, d=d)
@@ -87,14 +94,22 @@ if __name__=='__main__':
     ### Data generation: data (N_max_ridge,d) ; observations (N_max_ridge,)
     data, observations = generate_data(p=d, n=2*N_max_ridge, sigma2=sigma2, which_w=which_w, which_h=which_h)
 
-    train_masks_ridge, test_masks_ridge = cross_validation(2*N_max_ridge,
-                                                           k=CROSS_VAL_K, 
-                                                           homogeneous=False, 
-                                                           sizes=np.floor(np.linspace(d,N_max_ridge,CROSS_VAL_K)).astype(dtype=np.uint16))
-    train_masks_sgd, test_masks_sgd = cross_validation(2*N_max_sgd,
-                                                       k=CROSS_VAL_K,
-                                                       homogeneous=False,
-                                                       sizes=np.floor(np.linspace(d,N_max_sgd,CROSS_VAL_K)).astype(dtype=np.uint16))
+    if not HOMOGENEOUS:
+        train_masks_ridge, test_masks_ridge = cross_validation(2*N_max_ridge,
+                                                               k=CROSS_VAL_K, 
+                                                               homogeneous=False, 
+                                                               sizes=np.floor(np.linspace(d,N_max_ridge,CROSS_VAL_K)).astype(dtype=np.uint16))
+        train_masks_sgd, test_masks_sgd = cross_validation(2*N_max_sgd,
+                                                           k=CROSS_VAL_K,
+                                                           homogeneous=False,
+                                                           sizes=np.floor(np.linspace(d,N_max_sgd,CROSS_VAL_K)).astype(dtype=np.uint16))
+    else:
+        train_masks_ridge, test_masks_ridge = cross_validation(ceil(CROSS_VAL_K/(CROSS_VAL_K-1)*N_max_ridge),
+                                                               k=CROSS_VAL_K, 
+                                                               homogeneous=True)
+        train_masks_sgd, test_masks_sgd = cross_validation(ceil(CROSS_VAL_K/(CROSS_VAL_K-1)*N_max_sgd),
+                                                           k=CROSS_VAL_K,
+                                                           homogeneous=True)
 
     # for each hyperparameter, average its performances
     for j in tqdm(range(n_fine_tune_params)):

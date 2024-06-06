@@ -345,7 +345,9 @@ def os_command(file,
                intern_dim=10,
                k=None,
                homogeneous=None,
-               n_params=None):
+               n_params=None,
+               CV_ridge=None,
+               CV_sgd=None):
     command = 'python '
     command += file + ' '
     if ridge_bool:
@@ -368,11 +370,21 @@ def os_command(file,
         command += f' -k {k:d}'
     if homogeneous is not None:
         if homogeneous:
-            command += f' --homogeneous'
+            command += ' --homogeneous'
         else:
-            command += f' --no-homogeneous'
+            command += ' --no-homogeneous'
     if n_params is not None:
         command += f' --n_params {n_params:d}'
+    if CV_ridge is not None:
+        if CV_ridge:
+            command += ' --CV_ridge'
+        else:
+            commmand += ' --no-CV_ridge'
+    if CV_sgd is not None:
+        if CV_sgd:
+            command += ' --CV_sgd'
+        else:
+            command += ' --no-CV_sgd'
     return command
 
 def suffix_filename(ridge_bool=False,

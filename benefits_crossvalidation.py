@@ -19,18 +19,19 @@ sigma2 = 1
 
 CROSS_VAL_K = 10
 HOMOGENEOUS = False # homogeneous => tune only on N_max samples, non-homogeneous => tune on various n once
-Ridge_crossVal = False # Ridge_crossVal => tune the lambda with the cross_val method
+ridge_crossval = False # ridge_crossval => tune the lambda with the cross_val method
+sgd_crossval = False
 
-N_max_ridge = 1500
-N_max_sgd = 500
+N_max_ridge = 6000
+N_max_sgd = 2000
 
 n_ridge = np.floor(np.linspace(d,N_max_ridge,100)).astype(dtype=np.uint16)
 n_sgd = np.floor(np.linspace(d,N_max_sgd,20)).astype(dtype=np.uint16)
 
 n_fine_tune_params = 10 # nb of hyperparameters tested
-n_fine_tune_params_ridge= n_fine_tune_params *100
+n_fine_tune_params_ridge= n_fine_tune_params#*10
 n_fine_tune_params_sgd=n_fine_tune_params
-lambdas_ = np.logspace(-3,4,n_fine_tune_params_ridge, base=10.0) # range of parameters
+lambdas_ = np.logspace(-1,3,n_fine_tune_params_ridge, base=10.0) # range of parameters
 learning_rates = np.logspace(-3,-1,n_fine_tune_params_sgd)
 
 intern_dim = 10
@@ -62,6 +63,10 @@ if __name__=='__main__':
     parser.add_argument('--n_params', type=int, default=n_fine_tune_params, help='Number of hyperparameters to test')
     parser.add_argument('--depth', default=depth, type=int, help='depth of MLP (i.e nb of hidden layers), -1 for single layer')
     parser.add_argument('--intern_dim', default=intern_dim, type=int, help='intern dimension of hidden layers')
+    parser.add_argument('--CV_ridge', default=ridge_crossval, action=argparse.BooleanOptionalAction,
+                        help='Use crossvalidation for ridge')
+    parser.add_argument('--CV_sgd', default=ridge_crossval, action=argparse.BooleanOptionalAction,
+                        help='Use crossvalidation for ridge')
 
     args = parser.parse_args()
 
@@ -77,6 +82,8 @@ if __name__=='__main__':
     CROSS_VAL_K = args.k
     HOMOGENEOUS = args.homogeneous
     n_fine_tune_params = args.n_params
+    ridge_crossval = args.CV_ridge
+    sgd_crossval = args.CV_sgd
 
     # saving paths
     suffix_ridge = suffix_filename(ridge_bool=True, w=which_w, h=which_h, d=d)
@@ -94,47 +101,55 @@ if __name__=='__main__':
         objectives_sgd = np.zeros(len(learning_rates))
 
     ### Data generation: data (N_max_ridge,d) ; observations (N_max_ridge,)
-    data, observations = generate_data(p=d, n=2*N_max_ridge, sigma2=sigma2, which_w=which_w, which_h=which_h)
+    data, observations = generate_data(p=d, n=4*N_max_ridge, sigma2=sigma2, which_w=which_w, which_h=which_h)
 
     if not HOMOGENEOUS:
         train_masks_ridge, test_masks_ridge = cross_validation(2*N_max_ridge,
                                                                k=CROSS_VAL_K, 
                                                                homogeneous=False, 
+                                                               #sizes=600*np.ones(CROSS_VAL_K, dtype=np.uint16))
                                                                sizes=np.floor(np.linspace(d,N_max_ridge,CROSS_VAL_K)).astype(dtype=np.uint16))
         train_masks_sgd, test_masks_sgd = cross_validation(2*N_max_sgd,
                                                            k=CROSS_VAL_K,
                                                            homogeneous=False,
+                                                           #sizes=200*np.ones(CROSS_VAL_K, dtype=np.uint16))
                                                            sizes=np.floor(np.linspace(d,N_max_sgd,CROSS_VAL_K)).astype(dtype=np.uint16))
     else:
-        train_masks_ridge, test_masks_ridge = cross_validation(ceil(CROSS_VAL_K/(CROSS_VAL_K-1)*N_max_ridge),
+        train_masks_ridge, test_masks_ridge = cross_validation(ceil(CROSS_VAL_K/(CROSS_VAL_K-1)*N_max_ridge), #4*N_max_ridge
                                                                k=CROSS_VAL_K, 
                                                                homogeneous=True)
-        train_masks_sgd, test_masks_sgd = cross_validation(ceil(CROSS_VAL_K/(CROSS_VAL_K-1)*N_max_sgd),
+        train_masks_sgd, test_masks_sgd = cross_validation(ceil(CROSS_VAL_K/(CROSS_VAL_K-1)*N_max_sgd), #4*N_max_sgd
                                                            k=CROSS_VAL_K,
                                                            homogeneous=True)
         
-    if not Ridge_crossVal:
+    if not ridge_crossval:
         data_ridge, observations_ridge = generate_data(p=d, n=100000, sigma2=sigma2, which_w=which_w, which_h=which_h)
         data_ridge_train, observations_ridge_train = generate_data(p=d, n=400, sigma2=sigma2, which_w=which_w, which_h=which_h)
+    if not sgd_crossval:
+        data_sgd, observations_sgd = generate_data(p=d, n=100000, sigma2=sigma2, which_w=which_w, which_h=which_h)
+        data_sgd_train, observations_sgd_train = generate_data(p=d, n=400, sigma2=sigma2, which_w=which_w, which_h=which_h)
+
     # for each hyperparameter, average its performances
     for j in tqdm(range(n_fine_tune_params_ridge)):
 
-        if FINE_TUNE_RIDGE and not Ridge_crossVal:
+        if FINE_TUNE_RIDGE and not ridge_crossval:
             w = ridge(data_ridge_train, observations_ridge_train, lambda_=lambdas_[j])
             objectives_ridge[j] = objective(data_ridge, observations_ridge, w)
-            
-        # Cross validation
-        for i in range(CROSS_VAL_K):
+        
+        elif FINE_TUNE_RIDGE and ridge_crossval:
+            # Cross validation
+            for i in range(CROSS_VAL_K):
             ### Solving the problem
-            if FINE_TUNE_RIDGE and Ridge_crossVal:
                 train_mask = train_masks_ridge[i]
                 test_mask = test_masks_ridge[i]
                 # train on first part of data
                 w = ridge(data[train_mask], observations[train_mask], lambda_=lambdas_[j])
                 # evaluate on what remains
                 objectives_ridge[j] += objective(data[test_mask], observations[test_mask], w)
+                
     for j in tqdm(range(n_fine_tune_params_sgd)):
-            if FINE_TUNE_SGD:
+        if FINE_TUNE_SGD and sgd_crossval:
+            for i in range(CROSS_VAL_K):
                 train_mask = train_masks_sgd[i]
                 test_mask = test_masks_sgd[i]
                 model = MultiLayerPerceptron(input_dim=d,
@@ -161,6 +176,29 @@ if __name__=='__main__':
                           lr = learning_rates[j])
                 w = np.mean(ws[len(train_mask)//2:,:], axis=0) # tail averaging
                 objectives_sgd[j] += objective(data[test_mask], observations[test_mask], w)
+        elif FINE_TUNE_SGD and not sgd_crossval:
+            model = MultiLayerPerceptron(input_dim=d,
+                        intern_dim=intern_dim,
+                        output_dim=1,
+                        depth=depth,
+                        init='zero',
+                        isBiased = False,
+                    ).to(device)
+            input_Tensor = torch.from_numpy(data_sgd_train).to(device, dtype=torch.float32)
+            output_Tensor = torch.from_numpy(observations_sgd_train).to(device, dtype=torch.float32)
+            ws = train_v2(model,
+                          input_Tensor,
+                          output_Tensor,
+                          lossFct = nn.MSELoss(),
+                          optimizer=optimizer,
+                          epochs=len(input_Tensor),
+                          batch_size=None,
+                          return_vals=False,
+                          return_ws=True,
+                          init_norm = None,
+                          lr = learning_rates[j])
+            w = np.mean(ws[len(input_Tensor)//2:,:], axis=0) # tail averaging
+            objectives_sgd[j] += objective(data_sgd, observations_sgd, w)
 
     # save best parameters
     if FINE_TUNE_RIDGE:

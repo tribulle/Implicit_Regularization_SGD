@@ -27,11 +27,13 @@ GENERATE_SGD = True # generate SGD weights
 FINE_TUNE_RIDGE = True
 FINE_TUNE_SGD = True
 FINE_TUNE_PER_N = False
+ridge_crossval = True
+sgd_crossval = True
 n_fine_tune_params = 10
 
 if __name__=='__main__':
     # example of command to execute the desired files (generate data for ridge/sgd, fine tune for ridge/sgd on all w and all h)
-    for which_h in [2]:
+    for which_h in [1]:
         for which_w in [0,1,10]:
             #for intern_dim in [10,30,50,80,100]:
             if FINE_TUNE_PER_N:
@@ -50,7 +52,9 @@ if __name__=='__main__':
                                            intern_dim=intern_dim,
                                            k=CROSS_VAL_K,
                                            homogeneous=HOMOGENEOUS,
-                                           n_params=n_fine_tune_params)
+                                           n_params=n_fine_tune_params,
+                                           CV_sgd=sgd_crossval,
+                                           CV_ridge=ridge_crossval)
             os.system(command_fine_tune)
             file = 'benefits_data_generation.py'
             command_data = os_command(file, 

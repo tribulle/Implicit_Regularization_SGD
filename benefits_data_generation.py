@@ -16,8 +16,8 @@ d = 50
 sigma2 = 1
 nb_avg = 5
 
-N_max_ridge = 1500 # maximal nb of datapoints
-N_max_sgd = 500
+N_max_ridge = 6000 # maximal nb of datapoints
+N_max_sgd = 2000
 n_ridge = np.floor(np.linspace(d,N_max_ridge,100)).astype(dtype=np.uint16) # nb of datapoints for evaluations
 n_sgd = np.floor(np.linspace(d,N_max_sgd,20)).astype(dtype=np.uint16)
 

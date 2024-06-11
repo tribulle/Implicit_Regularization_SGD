@@ -102,6 +102,9 @@ if __name__=='__main__':
     cov = np.cov(data.T)
     print("Covariance:")
     print(cov)
+    U, S, Vh = np.linalg.svd(cov, full_matrices=True)
+    print("EigenValues:")
+    print(S)
     
     if not HOMOGENEOUS:
         train_masks_ridge, test_masks_ridge = cross_validation(2*N_max_ridge,

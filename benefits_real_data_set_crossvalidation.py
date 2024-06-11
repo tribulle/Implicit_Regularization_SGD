@@ -107,7 +107,8 @@ if __name__=='__main__':
     print("Covariance:")
     print(cov)
     U, S, Vh = np.linalg.svd(cov, full_matrices=True)
-
+    print("EigenValues:")
+    print(S)
     
     if not HOMOGENEOUS:
         print("Data:")

@@ -13,7 +13,7 @@ COMPUTE_DATA_PLOT = True
 
 d = 50
 sigma2 = 1
-nb_avg = 20
+nb_avg = 10
 
 N_samples = 10000
 
@@ -25,7 +25,7 @@ n_sgd = np.floor(np.linspace(d,N_max_sgd,20)).astype(dtype=np.uint16)
 all_which_h = [1,2] # 1 or 2 -> i**(-...)
 all_which_w = [0,1,10] # 0, 1 or 10 -> i**(-...)
 
-intern_dims = [10, 30, 50, 80, 100]
+intern_dims = [5,20,50,70]
 depth = 1
 
 OUTLIER_DETECTION = True

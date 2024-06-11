@@ -13,12 +13,12 @@ COMPUTE_DATA_PLOT = True
 
 d = 50
 sigma2 = 1
-nb_avg = 5
+nb_avg = 20
 
 N_samples = 10000 # nb of points for evaluation of the models
 
-N_max_ridge = 6000
-N_max_sgd = 2000
+N_max_ridge = 1500
+N_max_sgd = 500
 n_ridge = np.floor(np.linspace(d,N_max_ridge,100)).astype(dtype=np.uint16)
 n_sgd = np.floor(np.linspace(d,N_max_sgd,20)).astype(dtype=np.uint16)
 

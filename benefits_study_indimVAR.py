@@ -13,7 +13,7 @@ COMPUTE_DATA_PLOT = True
 
 d = 50
 sigma2 = 1
-nb_avg = 10
+nb_avg = 20
 
 N_samples = 10000
 

@@ -6,6 +6,7 @@ import torch.nn as nn
 import math
 from tqdm import tqdm
 from scipy.stats import special_ortho_group
+import csv
 
 DIRPATH = 'models/'
 
@@ -332,6 +333,20 @@ def generate_data(p = 200, n = 6000, sigma2 = 1, which_w=1, which_h=1):
     observations = np.array(observations)
 
     return data, observations
+
+### Generate n_vector of dim_p with multivariate normal distribution
+def generate_data_CSV(file_name = 'data/data.csv', n = 6000):
+
+    with open(file_name, 'r') as f:
+        reader = csv.reader(f)
+        data = list(reader)
+    data_array = np.array(data, dtype=float)
+    col = data_array.shape[1]
+    
+    if col <= 1: print("ERROR NO OBSERVATION")
+    if n >= data_array.shape[0]: n = data_array.shape[0] -1
+    
+    return data_array[:n,:col-1], data_array[:n,col-1]
 
 def os_command(file,
                ridge_bool=False,

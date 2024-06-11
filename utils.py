@@ -346,7 +346,7 @@ def generate_data_CSV(file_name = 'data/data.csv', n = 6000):
     if col <= 1: print("ERROR NO OBSERVATION")
     if n >= data_array.shape[0]: n = data_array.shape[0] -1
     
-    return data_array[:n,:col-1], data_array[:n,col-1]
+    return data_array[:n,:col-1], (data_array[:n,col-1]*10/np.linalg.norm(data_array[:n,col-1]))
 
 def os_command(file,
                ridge_bool=False,

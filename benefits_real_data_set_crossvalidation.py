@@ -158,7 +158,6 @@ if __name__=='__main__':
                 # train on first part of data
                 w = ridge(data[train_mask], observations[train_mask], lambda_=lambdas_[j])
                 # evaluate on what remains
-                print(objectives_ridge)
                 objectives_ridge[j] += objective(data[test_mask], observations[test_mask], w)
                 
     for j in tqdm(range(n_fine_tune_params_sgd)):
@@ -189,6 +188,7 @@ if __name__=='__main__':
                           init_norm = None,
                           lr = learning_rates[j])
                 w = np.mean(ws[len(train_mask)//2:,:], axis=0) # tail averaging
+                print(ws)
                 objectives_sgd[j] += objective(data[test_mask], observations[test_mask], w)
         elif FINE_TUNE_SGD and not sgd_crossval:
             model = MultiLayerPerceptron(input_dim=d,

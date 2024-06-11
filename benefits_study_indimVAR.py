@@ -56,7 +56,7 @@ if COMPUTE_DATA_PLOT:
     for i,which_h in enumerate(all_which_h):
         for j,which_w in enumerate(all_which_w):
             ### Generate new data (from same distribution)
-            data, observations = generate_data(p=d, n=N_max_ridge, sigma2=sigma2, which_w=which_w, which_h=which_h)
+            data, observations = generate_data(p=d, n=N_samples, sigma2=sigma2, which_w=which_w, which_h=which_h)
 
             ### RIDGE PART
             suffix_ridge = suffix_filename(ridge_bool=True, w=which_w, h=which_h, d=d)

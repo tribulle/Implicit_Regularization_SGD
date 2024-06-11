@@ -25,9 +25,6 @@ sgd_crossval = False
 N_max_ridge = 1500
 N_max_sgd = 500
 
-n_ridge = np.floor(np.linspace(d,N_max_ridge,100)).astype(dtype=np.uint16)
-n_sgd = np.floor(np.linspace(d,N_max_sgd,20)).astype(dtype=np.uint16)
-
 n_fine_tune_params = 10 # nb of hyperparameters tested
 n_fine_tune_params_ridge= n_fine_tune_params*10
 n_fine_tune_params_sgd=n_fine_tune_params

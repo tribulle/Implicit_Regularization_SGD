@@ -56,7 +56,7 @@ if COMPUTE_DATA_PLOT:
     for i,which_h in enumerate(all_which_h):
         for j,which_w in enumerate(all_which_w):
             ### Generate new data (from same distribution)
-            data, observations = generate_data(p=d, n=N_max_ridge, sigma2=sigma2, which_w=which_w, which_h=which_h)
+            data, observations = generate_data(p=d, n=N_samples, sigma2=sigma2, which_w=which_w, which_h=which_h)
 
             ### RIDGE PART
             suffix_ridge = suffix_filename(ridge_bool=True, w=which_w, h=which_h, d=d)
@@ -92,7 +92,7 @@ if COMPUTE_DATA_PLOT:
                 if OUTLIER_DETECTION:
                     n_out_sgd = (sgd_errors > threshold_obj).sum()
                     sgd_risks[k, i, j,:] = np.mean(sgd_errors, axis=0, where=sgd_errors<threshold_obj)
-                    print(f'SGD: {n_out_sgd} outliers for H{which_h}_w{which_w} indim{intern_dim} ')
+                    print(f'SGD: {n_out_sgd} outliers for H{which_h}_w{which_w} depth{depth} ')
                 else:
                     sgd_risks[k,i, j,:] = np.mean(sgd_errors, axis=0)
 
@@ -124,7 +124,7 @@ for i, which_h in enumerate(all_which_h):
     for j,which_w in enumerate(all_which_w):
         for k, depth in enumerate(depths):
             axs[0,j].plot(n_sgd, y_plot[k,i,j,:], label=f'depth: {depth}')
-            axs[1,j].plot(n_sgd, sgd_risks[k,i,j,:], label=f'SGD - intern_dim: {depth}')
+            axs[1,j].plot(n_sgd, sgd_risks[k,i,j,:], label=f'SGD - depth: {depth}')
         axs[1,j].plot(n_ridge, ridge_risks[i,j,:], linestyle='--', label=f'Ridge')
         
         axs[0,j].grid(color='black', which="both", linestyle='--', linewidth=0.2)

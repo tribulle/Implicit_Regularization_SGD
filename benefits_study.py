@@ -68,7 +68,7 @@ if COMPUTE_DATA_PLOT:
             w_sgd = np.load(SAVE_SGD_ITERATE) # (nb_avg, len(n_sgd), d)
 
             ### Generate new data (from same distribution)
-            data, observations = generate_data(p=d, n=N_max_ridge, sigma2=sigma2, which_w=which_w, which_h=which_h)
+            data, observations = generate_data(p=d, n=N_samples, sigma2=sigma2, which_w=which_w, which_h=which_h)
 
             ### Compute variables of interest
             ridge_errors = np.zeros((nb_avg, len(n_ridge)))

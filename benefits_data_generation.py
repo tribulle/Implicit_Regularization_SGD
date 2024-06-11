@@ -18,11 +18,6 @@ nb_avg = 20
 
 N_max_ridge = 1500 # maximal nb of datapoints
 N_max_sgd = 500
-n_ridge = np.floor(np.linspace(d,N_max_ridge,100)).astype(dtype=np.uint16) # nb of datapoints for evaluations
-n_sgd = np.floor(np.linspace(d,N_max_sgd,20)).astype(dtype=np.uint16)
-
-lambda_ = 1e-5*np.ones(len(n_ridge)) # default lambda for tests
-learning_rate = 0.001*np.ones(len(n_sgd)) # default learning rates for tests
 
 intern_dim = 10
 depth = -1 # Single Layer
@@ -62,6 +57,9 @@ if __name__=='__main__':
     N_max_sgd = args.N_SGD
     depth = args.depth
     intern_dim = args.intern_dim
+
+    n_ridge = np.floor(np.linspace(d,N_max_ridge,100)).astype(dtype=np.uint16) # nb of datapoints for evaluations
+    n_sgd = np.floor(np.linspace(d,N_max_sgd,20)).astype(dtype=np.uint16)
 
     # saving paths
     suffix_ridge = suffix_filename(ridge_bool=True, w=which_w, h=which_h, d=d)

@@ -91,9 +91,6 @@ if __name__=='__main__':
     ### Data generation: data (N_max_ridge,d) ; observations (N_max_ridge,)
     data, observations = generate_data(p=d, n=ceil(CROSS_VAL_K/(CROSS_VAL_K-1)*N_max_ridge), sigma2=sigma2, which_w=which_w, which_h=which_h)
     
-    U, S, Vh = np.linalg.svd(data, full_matrices=True)
-    print(S)
-    
     if FINE_TUNE_RIDGE:
         for k in tqdm(range(len(n_ridge))):
             n = n_ridge[k]

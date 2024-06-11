@@ -102,8 +102,15 @@ if __name__=='__main__':
 
     ### Data generation: data (N_max_ridge,d) ; observations (N_max_ridge,)
     data, observations = generate_data_CSV(n=4*N_max_ridge)
+    
+    cov = np.cov(data.T)
+    print("Covariance:")
+    print(cov)
+    U, S, Vh = np.linalg.svd(cov, full_matrices=True)
 
+    
     if not HOMOGENEOUS:
+        print("Data:")
         print(data)
         d=data.shape[1]
         

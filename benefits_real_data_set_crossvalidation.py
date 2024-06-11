@@ -28,11 +28,11 @@ N_max_sgd = 500
 n_ridge = np.floor(np.linspace(d,N_max_ridge,100)).astype(dtype=np.uint16)
 n_sgd = np.floor(np.linspace(d,N_max_sgd,20)).astype(dtype=np.uint16)
 
-n_fine_tune_params = 10 # nb of hyperparameters tested
+n_fine_tune_params = 20 # nb of hyperparameters tested
 n_fine_tune_params_ridge= n_fine_tune_params*10
 n_fine_tune_params_sgd=n_fine_tune_params
-lambdas_ = np.logspace(-3,0,n_fine_tune_params_ridge, base=10.0) # range of parameters
-learning_rates = np.logspace(-3,-1,n_fine_tune_params_sgd)
+lambdas_ = np.logspace(-10,-5,n_fine_tune_params_ridge, base=10.0) # range of parameters
+learning_rates = np.logspace(-6,-3,n_fine_tune_params_sgd)
 
 intern_dim = 10
 depth = -1 # Single Layer
@@ -188,7 +188,6 @@ if __name__=='__main__':
                           init_norm = None,
                           lr = learning_rates[j])
                 w = np.mean(ws[len(train_mask)//2:,:], axis=0) # tail averaging
-                print(ws)
                 objectives_sgd[j] += objective(data[test_mask], observations[test_mask], w)
         elif FINE_TUNE_SGD and not sgd_crossval:
             model = MultiLayerPerceptron(input_dim=d,

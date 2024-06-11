@@ -158,6 +158,7 @@ if __name__=='__main__':
                 # train on first part of data
                 w = ridge(data[train_mask], observations[train_mask], lambda_=lambdas_[j])
                 # evaluate on what remains
+                print(objectives_ridge)
                 objectives_ridge[j] += objective(data[test_mask], observations[test_mask], w)
                 
     for j in tqdm(range(n_fine_tune_params_sgd)):
@@ -215,11 +216,13 @@ if __name__=='__main__':
 
     # save best parameters
     if FINE_TUNE_RIDGE:
+        print(objectives_ridge)
         idx_best = np.nanargmin(objectives_ridge)
         print(f'Best lambda_: {lambdas_[idx_best]}')
         print(f'Mean objective: {objectives_ridge[idx_best]/len(lambdas_)}')
         np.save(SAVE_RIDGE_LAMBDA, lambdas_[idx_best])
     if FINE_TUNE_SGD:
+        print(objectives_sgd)
         idx_best = np.nanargmin(objectives_sgd)
         print(f'Best gamma: {learning_rates[idx_best]}')
         print(f'Mean objective: {objectives_sgd[idx_best]/len(learning_rates)}')

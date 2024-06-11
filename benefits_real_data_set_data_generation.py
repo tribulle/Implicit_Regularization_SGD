@@ -12,8 +12,6 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 ### Parameters
 # code parameters
-d = 50
-sigma2 = 1
 nb_avg = 20
 
 N_max_ridge = 1500 # maximal nb of datapoints

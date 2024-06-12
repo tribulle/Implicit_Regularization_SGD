@@ -12,12 +12,13 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 ### Parameters
 # code parameters
+DATA_FOLDER = 'data/'
+DATA_FILENAME = 'data.csv'
+
 nb_avg = 20
 
 N_max_ridge = 1500 # maximal nb of datapoints
 N_max_sgd = 500
-n_ridge = np.floor(np.linspace(d,N_max_ridge,100)).astype(dtype=np.uint16) # nb of datapoints for evaluations
-n_sgd = np.floor(np.linspace(d,N_max_sgd,20)).astype(dtype=np.uint16)
 
 intern_dim = 10
 depth = -1 # Single Layer
@@ -40,7 +41,7 @@ if __name__=='__main__':
                         help='generate Ridge data')
     parser.add_argument('-H', default=which_h, choices=[1,2], type=int, help='matrix H1 or H2 to use')
     parser.add_argument('-w', default=which_w, choices=[0,1,10], type=int, help='true vector w0, w1 or w10')
-    parser.add_argument('-d', default=d, type=int, help='dimension of the data')
+    parser.add_argument('-d', default=50, type=int, help='dimension of the data')
     parser.add_argument('--N_ridge', default=N_max_ridge, type=int, help='Max number of data for ridge')
     parser.add_argument('--N_SGD', default=N_max_sgd, type=int, help='Max number of data for SGD')
     parser.add_argument('--depth', default=depth, type=int, help='depth of MLP (i.e nb of hidden layers), -1 for single layer')
@@ -59,15 +60,16 @@ if __name__=='__main__':
     intern_dim = args.intern_dim
 
     # saving paths
-    suffix_ridge = suffix_filename(ridge_bool=True, w=which_w, h=which_h, d=d)
-    suffix_sgd = suffix_filename(sgd_bool=True, w=which_w, h=which_h, d=d, depth=depth, intern_dim=intern_dim)
     SAVE_DIR_SGD = 'data/SGD/'
     SAVE_DIR_RIDGE = 'data/Ridge/'
-    SAVE_RIDGE_ITERATE = SAVE_DIR_RIDGE + 'iterates'+suffix_ridge+'.npy'
-    SAVE_SGD_ITERATE = SAVE_DIR_SGD + 'iterates'+suffix_sgd+'.npy'
-    SAVE_RIDGE_LAMBDA = SAVE_DIR_RIDGE + 'lambda'+suffix_ridge+'.npy'
-    SAVE_SGD_GAMMA = SAVE_DIR_SGD + 'gamma'+suffix_sgd+'.npy'
+    SAVE_RIDGE_ITERATE = SAVE_DIR_RIDGE + f'iterate_{DATA_FILENAME}.npy'
+    SAVE_SGD_ITERATE = SAVE_DIR_SGD + f'iterates_{DATA_FILENAME}.npy'
+    SAVE_RIDGE_LAMBDA = SAVE_DIR_RIDGE + f'lambda_{DATA_FILENAME}.npy'
+    SAVE_SGD_GAMMA = SAVE_DIR_SGD + f'gamma_{DATA_FILENAME}.npy'
 
+    n_ridge = np.floor(np.linspace(d,N_max_ridge,100)).astype(dtype=np.uint16)
+    n_sgd = np.floor(np.linspace(d,N_max_sgd,20)).astype(dtype=np.uint16)
+    
     ### Begin experiment
     # Initialization
     w_ridge = np.zeros((nb_avg, len(n_ridge), d))
@@ -108,7 +110,7 @@ if __name__=='__main__':
     # Averaging results
     for i in tqdm(range(nb_avg)):
         ### Data generation: data (N_max_ridge,d) ; observations (N_max_ridge,)
-        data, observations = generate_data_CSV(n=N_max_ridge)
+        data, observations, means, stds = generate_data_CSV(n=N_max_ridge)
 
         ### Solving the problem
         # Ridge

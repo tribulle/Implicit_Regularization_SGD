@@ -14,8 +14,9 @@ torch.manual_seed(0)
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 ### Parameters
-d = 50
-sigma2 = 1
+DATA_FOLDER = 'data/'
+DATA_FILENAME = 'data.csv'
+d = 6
 
 CROSS_VAL_K = 10
 HOMOGENEOUS = False # homogeneous => tune only on N_max samples, non-homogeneous => tune on various n once
@@ -24,9 +25,6 @@ sgd_crossval = True
 
 N_max_ridge = 1500
 N_max_sgd = 500
-
-n_ridge = np.floor(np.linspace(d,N_max_ridge,100)).astype(dtype=np.uint16)
-n_sgd = np.floor(np.linspace(d,N_max_sgd,20)).astype(dtype=np.uint16)
 
 n_fine_tune_params = 20 # nb of hyperparameters tested
 n_fine_tune_params_ridge= n_fine_tune_params*10
@@ -72,9 +70,6 @@ if __name__=='__main__':
 
     FINE_TUNE_RIDGE = args.Ridge
     FINE_TUNE_SGD = args.SGD
-    which_h = args.H
-    which_w = args.w
-    d = args.d
     N_max_ridge = args.N_ridge
     N_max_sgd = args.N_SGD
     depth = args.depth
@@ -86,12 +81,10 @@ if __name__=='__main__':
     sgd_crossval = args.CV_sgd
 
     # saving paths
-    suffix_ridge = suffix_filename(ridge_bool=True, w=which_w, h=which_h, d=d)
-    suffix_sgd = suffix_filename(sgd_bool=True, w=which_w, h=which_h, d=d, depth=depth, intern_dim=intern_dim)
     SAVE_DIR_SGD = 'data/SGD/'
     SAVE_DIR_RIDGE = 'data/Ridge/'
-    SAVE_RIDGE_LAMBDA = SAVE_DIR_RIDGE + 'lambda'+suffix_ridge+'.npy'
-    SAVE_SGD_GAMMA = SAVE_DIR_SGD + 'gamma'+suffix_sgd+'.npy'
+    SAVE_RIDGE_LAMBDA = SAVE_DIR_RIDGE + f'lambda_{DATA_FILENAME}.npy'
+    SAVE_SGD_GAMMA = SAVE_DIR_SGD + f'gamma_{DATA_FILENAME}.npy'
 
     ### Begin experiment
     # Initialization
@@ -101,7 +94,11 @@ if __name__=='__main__':
         objectives_sgd = np.zeros(len(learning_rates))
 
     ### Data generation: data (N_max_ridge,d) ; observations (N_max_ridge,)
-    data, observations = generate_data_CSV(n=4*N_max_ridge)
+    data, observations, means, stds = generate_data_CSV(n=4*N_max_ridge, file_name=DATA_FOLDER+DATA_FILENAME)
+    d = data.shape[1]
+
+    n_ridge = np.floor(np.linspace(d,N_max_ridge,100)).astype(dtype=np.uint16)
+    n_sgd = np.floor(np.linspace(d,N_max_sgd,20)).astype(dtype=np.uint16)
     
     cov = np.cov(data.T)
     print("Covariance:")
@@ -144,11 +141,11 @@ if __name__=='__main__':
                                                            homogeneous=True)
         
     if not ridge_crossval:
-        data_ridge, observations_ridge = generate_data_CSV(n=100000)
-        data_ridge_train, observations_ridge_train = generate_data_CSV(n=400)
+        data_ridge, observations_ridge, means, stds = generate_data_CSV(n=100000)
+        data_ridge_train, observations_ridge_train, means, stds = generate_data_CSV(n=400)
     if not sgd_crossval:
-        data_sgd, observations_sgd = generate_data_CSV(n=100000)
-        data_sgd_train, observations_sgd_train = generate_data_CSV(n=400)
+        data_sgd, observations_sgd, means, stds = generate_data_CSV(n=100000)
+        data_sgd_train, observations_sgd_train, means, stds = generate_data_CSV(n=400)
 
     # for each hyperparameter, average its performances
     for j in tqdm(range(n_fine_tune_params_ridge)):

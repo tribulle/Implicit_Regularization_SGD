@@ -100,11 +100,11 @@ if __name__=='__main__':
     ### Data generation: data (N_max_ridge,d) ; observations (N_max_ridge,)
     data, observations = generate_data(p=d, n=4*N_max_ridge, sigma2=sigma2, which_w=which_w, which_h=which_h)
     cov = np.cov(data.T)
-    print("Covariance:")
-    print(cov)
-    U, S, Vh = np.linalg.svd(cov, full_matrices=True)
-    print("EigenValues:")
-    print(S)
+    #print("Covariance:")
+    #print(cov)
+    #U, S, Vh = np.linalg.svd(cov, full_matrices=True)
+    #print("EigenValues:")
+    #print(S)
     
     if not HOMOGENEOUS:
         train_masks_ridge, test_masks_ridge = cross_validation(2*N_max_ridge,

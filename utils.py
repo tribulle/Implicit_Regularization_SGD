@@ -333,7 +333,7 @@ def generate_data(p = 200, n = 6000, sigma2 = 1, which_w=1, which_h=1):
 
     return data, observations
 
-def generate_data_CSV(file_name = 'data/data.csv', n = 6000):
+def generate_data_CSV(file_name = 'data/data.csv', n = 6000, normalize=True):
 
     with open(file_name, 'r') as f:
         reader = csv.reader(f)
@@ -342,9 +342,16 @@ def generate_data_CSV(file_name = 'data/data.csv', n = 6000):
     col = data_array.shape[1]
     
     if col <= 1: print("ERROR NO OBSERVATION")
-    if n >= data_array.shape[0]: n = data_array.shape[0] -1
+    if n >= data_array.shape[0]: 
+        print(f'Maximal number of data reached: loading {data_array.shape[0]:d} rows instead of n={n:d}')
+        n = data_array.shape[0] -1
     
-    return data_array[:n,:col-1], (data_array[:n,col-1]*10/np.linalg.norm(data_array[:n,col-1]))
+    if normalize:
+        means = np.mean(data_array, axis=0)
+        stds = np.std(data_array, axis=0)
+        data_array = (data_array-means)/stds
+
+    return data_array[:n,:col-1], data_array[:n, :-1], means, stds
 
 def os_command(file,
                ridge_bool=False,

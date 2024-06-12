@@ -35,7 +35,7 @@ REAL_DATASET = False
 if __name__=='__main__':
     if not REAL_DATASET:
         # example of command to execute the desired files (generate data for ridge/sgd, fine tune for ridge/sgd on all w and all h)
-        for which_h in [1,2]:
+        for which_h in [0]:
             for which_w in [0,1,10]:
                 #for depth in [1,2,5,8]:
                     if FINE_TUNE_PER_N:

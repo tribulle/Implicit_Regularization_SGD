@@ -49,7 +49,7 @@ if __name__=='__main__':
                         help='Fine tune SGD')
     parser.add_argument('--Ridge', action=argparse.BooleanOptionalAction, default=FINE_TUNE_RIDGE,
                         help='Fine tune Ridge')
-    parser.add_argument('-H', default=which_h, choices=[1,2], type=int, help='matrix H1 or H2 to use')
+    parser.add_argument('-H', default=which_h, type=int, help='matrix H1 or H2 to use')
     parser.add_argument('-w', default=which_w, choices=[0,1,10], type=int, help='true vector w0, w1 or w10')
     parser.add_argument('-d', default=d, type=int, help='dimension of the data')
     parser.add_argument('--N_ridge', default=N_max_ridge, type=int, help='Max number of data for ridge')

@@ -13,7 +13,17 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 ### Parameters
 # code parameters
 DATA_FOLDER = 'data/'
-DATA_FILENAME = 'data.csv'
+DATA_FILENAME = 'data'
+EXT='.csv'
+TRAIN_TEST_SPLIT = 0.8
+
+data, observations, means, stds = load_data_CSV(file_name=DATA_FOLDER+DATA_FILENAME+EXT,
+                                                n=None, # None to load all the dataset
+                                                normalize=True)
+data = data[:int(TRAIN_TEST_SPLIT*len(data)),:]
+observations = observations[:int(TRAIN_TEST_SPLIT*len(observations))]
+
+d = data.shape[1]
 
 nb_avg = 20
 
@@ -27,7 +37,7 @@ optimizer = 'SGD'
 which_h = 1 # 1 or 2 -> i**(-...)
 which_w = 1 # 0, 1 or 10 -> i**(-...)
 
-GENERATE_RIDGE = False # generate ridge weights
+GENERATE_RIDGE = True # generate ridge weights
 GENERATE_SGD = True # generate SGD weights
 USE_SAVED_PARAMS = True # use the params saved
 SAME_LR = True # all learning rates are the same in learning_rate, for faster computations
@@ -51,9 +61,6 @@ if __name__=='__main__':
 
     GENERATE_RIDGE = args.Ridge
     GENERATE_SGD = args.SGD
-    which_h = int(args.H)
-    which_w = int(args.w)
-    d = args.d
     N_max_ridge = args.N_ridge
     N_max_sgd = args.N_SGD
     depth = args.depth
@@ -62,14 +69,14 @@ if __name__=='__main__':
     # saving paths
     SAVE_DIR_SGD = 'data/SGD/'
     SAVE_DIR_RIDGE = 'data/Ridge/'
-    SAVE_RIDGE_ITERATE = SAVE_DIR_RIDGE + f'iterate_{DATA_FILENAME}.npy'
+    SAVE_RIDGE_ITERATE = SAVE_DIR_RIDGE + f'iterates_{DATA_FILENAME}.npy'
     SAVE_SGD_ITERATE = SAVE_DIR_SGD + f'iterates_{DATA_FILENAME}.npy'
     SAVE_RIDGE_LAMBDA = SAVE_DIR_RIDGE + f'lambda_{DATA_FILENAME}.npy'
     SAVE_SGD_GAMMA = SAVE_DIR_SGD + f'gamma_{DATA_FILENAME}.npy'
 
     n_ridge = np.floor(np.linspace(d,N_max_ridge,100)).astype(dtype=np.uint16)
     n_sgd = np.floor(np.linspace(d,N_max_sgd,20)).astype(dtype=np.uint16)
-    
+
     ### Begin experiment
     # Initialization
     w_ridge = np.zeros((nb_avg, len(n_ridge), d))
@@ -110,7 +117,8 @@ if __name__=='__main__':
     # Averaging results
     for i in tqdm(range(nb_avg)):
         ### Data generation: data (N_max_ridge,d) ; observations (N_max_ridge,)
-        data, observations, means, stds = generate_data_CSV(n=N_max_ridge)
+        rdm_idx = np.random.choice(len(data), size=min(N_max_ridge, len(data)))
+        data_i, observations_i = data[rdm_idx,:], observations[rdm_idx]
 
         ### Solving the problem
         # Ridge
@@ -118,12 +126,12 @@ if __name__=='__main__':
             for j,n in enumerate(n_ridge): # generate ridge solution for each n
                 if n > data.shape[0]: break
             
-                w_ridge[i,j,:] = ridge(data[:n,:], observations[:n], lambda_=lambda_[j])
+                w_ridge[i,j,:] = ridge(data_i[:n,:], observations_i[:n], lambda_=lambda_[j])
 
         # SGD
         if GENERATE_SGD:
-            input_Tensor = torch.from_numpy(data).to(device, dtype=torch.float32)
-            output_Tensor = torch.from_numpy(observations).to(device, dtype=torch.float32)
+            input_Tensor = torch.from_numpy(data_i).to(device, dtype=torch.float32)
+            output_Tensor = torch.from_numpy(observations_i).to(device, dtype=torch.float32)
 
             model = MultiLayerPerceptron(input_dim=d,
                                          intern_dim=intern_dim,

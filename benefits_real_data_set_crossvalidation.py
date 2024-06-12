@@ -15,13 +15,20 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 ### Parameters
 DATA_FOLDER = 'data/'
-DATA_FILENAME = 'data.csv'
-d = 6
+DATA_FILENAME = 'data'
+EXT='.csv'
+TRAIN_TEST_SPLIT = 0.8
+
+data, observations, means, stds = load_data_CSV(file_name=DATA_FOLDER+DATA_FILENAME+EXT,
+                                                n=None, # None to load all the dataset
+                                                normalize=True)
+data = data[:int(TRAIN_TEST_SPLIT*len(data)),:]
+observations = observations[:int(TRAIN_TEST_SPLIT*len(observations))]
+
+d = data.shape[1]
 
 CROSS_VAL_K = 10
 HOMOGENEOUS = False # homogeneous => tune only on N_max samples, non-homogeneous => tune on various n once
-ridge_crossval = True # ridge_crossval => tune the lambda with the cross_val method
-sgd_crossval = True
 
 N_max_ridge = 1500
 N_max_sgd = 500
@@ -29,8 +36,8 @@ N_max_sgd = 500
 n_fine_tune_params = 20 # nb of hyperparameters tested
 n_fine_tune_params_ridge= n_fine_tune_params*10
 n_fine_tune_params_sgd=n_fine_tune_params
-lambdas_ = np.logspace(-17,-13,n_fine_tune_params_ridge, base=10.0) # range of parameters
-learning_rates = np.logspace(-6,-3,n_fine_tune_params_sgd)
+lambdas_ = np.logspace(-1,1,n_fine_tune_params_ridge, base=10.0) # range of parameters
+learning_rates = np.logspace(-3,-1,n_fine_tune_params_sgd)
 
 intern_dim = 10
 depth = -1 # Single Layer
@@ -61,9 +68,9 @@ if __name__=='__main__':
     parser.add_argument('--n_params', type=int, default=n_fine_tune_params, help='Number of hyperparameters to test')
     parser.add_argument('--depth', default=depth, type=int, help='depth of MLP (i.e nb of hidden layers), -1 for single layer')
     parser.add_argument('--intern_dim', default=intern_dim, type=int, help='intern dimension of hidden layers')
-    parser.add_argument('--CV_ridge', default=ridge_crossval, action=argparse.BooleanOptionalAction,
+    parser.add_argument('--CV_ridge', default=True, action=argparse.BooleanOptionalAction,
                         help='Use crossvalidation for ridge')
-    parser.add_argument('--CV_sgd', default=ridge_crossval, action=argparse.BooleanOptionalAction,
+    parser.add_argument('--CV_sgd', default=True, action=argparse.BooleanOptionalAction,
                         help='Use crossvalidation for ridge')
 
     args = parser.parse_args()
@@ -77,8 +84,6 @@ if __name__=='__main__':
     CROSS_VAL_K = args.k
     HOMOGENEOUS = args.homogeneous
     n_fine_tune_params = args.n_params
-    ridge_crossval = args.CV_ridge
-    sgd_crossval = args.CV_sgd
 
     # saving paths
     SAVE_DIR_SGD = 'data/SGD/'
@@ -93,8 +98,6 @@ if __name__=='__main__':
     if FINE_TUNE_SGD:
         objectives_sgd = np.zeros(len(learning_rates))
 
-    ### Data generation: data (N_max_ridge,d) ; observations (N_max_ridge,)
-    data, observations, means, stds = generate_data_CSV(n=4*N_max_ridge, file_name=DATA_FOLDER+DATA_FILENAME)
     d = data.shape[1]
 
     n_ridge = np.floor(np.linspace(d,N_max_ridge,100)).astype(dtype=np.uint16)
@@ -107,11 +110,7 @@ if __name__=='__main__':
     print("EigenValues:")
     print(S)
     
-    if not HOMOGENEOUS:
-        print("Data:")
-        print(data)
-        d=data.shape[1]
-        
+    if not HOMOGENEOUS:      
         l = 2*N_max_ridge
         if l >= data.shape[0]: l = data.shape[0] -1
         
@@ -119,7 +118,7 @@ if __name__=='__main__':
                                                                k=CROSS_VAL_K, 
                                                                homogeneous=False, 
                                                                #sizes=N_max_ridge*np.ones(CROSS_VAL_K, dtype=np.uint16))
-                                                               sizes=np.floor(np.linspace(d,l/2,CROSS_VAL_K)).astype(dtype=np.uint16))
+                                                               sizes=np.floor(np.linspace(d,l//2,CROSS_VAL_K)).astype(dtype=np.uint16))
         
         l = 2*N_max_sgd
         if l >= data.shape[0]: l = data.shape[0] -1
@@ -127,7 +126,7 @@ if __name__=='__main__':
                                                            k=CROSS_VAL_K,
                                                            homogeneous=False,
                                                            #sizes=N_max_sgd*np.ones(CROSS_VAL_K, dtype=np.uint16))
-                                                           sizes=np.floor(np.linspace(d,l/2,CROSS_VAL_K)).astype(dtype=np.uint16))
+                                                           sizes=np.floor(np.linspace(d,l//2,CROSS_VAL_K)).astype(dtype=np.uint16))
     else:
         l = ceil(CROSS_VAL_K/(CROSS_VAL_K-1)*N_max_ridge)
         if l >= data.shape[0]: l = data.shape[0] -1
@@ -139,22 +138,10 @@ if __name__=='__main__':
         train_masks_sgd, test_masks_sgd = cross_validation(l, #4*N_max_sgd
                                                            k=CROSS_VAL_K,
                                                            homogeneous=True)
-        
-    if not ridge_crossval:
-        data_ridge, observations_ridge, means, stds = generate_data_CSV(n=100000)
-        data_ridge_train, observations_ridge_train, means, stds = generate_data_CSV(n=400)
-    if not sgd_crossval:
-        data_sgd, observations_sgd, means, stds = generate_data_CSV(n=100000)
-        data_sgd_train, observations_sgd_train, means, stds = generate_data_CSV(n=400)
 
     # for each hyperparameter, average its performances
-    for j in tqdm(range(n_fine_tune_params_ridge)):
-
-        if FINE_TUNE_RIDGE and not ridge_crossval:
-            w = ridge(data_ridge_train, observations_ridge_train, lambda_=lambdas_[j])
-            objectives_ridge[j] = objective(data_ridge, observations_ridge, w)
-        
-        elif FINE_TUNE_RIDGE and ridge_crossval:
+    if FINE_TUNE_RIDGE:
+        for j in tqdm(range(n_fine_tune_params_ridge)):        
             # Cross validation
             for i in range(CROSS_VAL_K):
             ### Solving the problem
@@ -164,9 +151,9 @@ if __name__=='__main__':
                 w = ridge(data[train_mask], observations[train_mask], lambda_=lambdas_[j])
                 # evaluate on what remains
                 objectives_ridge[j] += objective(data[test_mask], observations[test_mask], w)
-                
-    for j in tqdm(range(n_fine_tune_params_sgd)):
-        if FINE_TUNE_SGD and sgd_crossval:
+
+    if FINE_TUNE_SGD:         
+        for j in tqdm(range(n_fine_tune_params_sgd)):
             for i in range(CROSS_VAL_K):
                 train_mask = train_masks_sgd[i]
                 test_mask = test_masks_sgd[i]
@@ -194,29 +181,6 @@ if __name__=='__main__':
                           lr = learning_rates[j])
                 w = np.mean(ws[len(train_mask)//2:,:], axis=0) # tail averaging
                 objectives_sgd[j] += objective(data[test_mask], observations[test_mask], w)
-        elif FINE_TUNE_SGD and not sgd_crossval:
-            model = MultiLayerPerceptron(input_dim=d,
-                        intern_dim=intern_dim,
-                        output_dim=1,
-                        depth=depth,
-                        init='zero',
-                        isBiased = False,
-                    ).to(device)
-            input_Tensor = torch.from_numpy(data_sgd_train).to(device, dtype=torch.float32)
-            output_Tensor = torch.from_numpy(observations_sgd_train).to(device, dtype=torch.float32)
-            ws = train_v2(model,
-                          input_Tensor,
-                          output_Tensor,
-                          lossFct = nn.MSELoss(),
-                          optimizer=optimizer,
-                          epochs=len(input_Tensor),
-                          batch_size=None,
-                          return_vals=False,
-                          return_ws=True,
-                          init_norm = None,
-                          lr = learning_rates[j])
-            w = np.mean(ws[len(input_Tensor)//2:,:], axis=0) # tail averaging
-            objectives_sgd[j] += objective(data_sgd, observations_sgd, w)
 
     # save best parameters
     if FINE_TUNE_RIDGE:

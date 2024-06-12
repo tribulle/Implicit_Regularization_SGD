@@ -10,6 +10,7 @@ torch.manual_seed(5)
 
 ### Parameters
 COMPUTE_DATA_PLOT = True
+PLOT_ONLY_N = False # plot only the n VS n plot, not the loss
 
 d = 50
 sigma2 = 1
@@ -119,27 +120,42 @@ else:
 
 
 for i, which_h in enumerate(all_which_h):
-    fig,axs = plt.subplots(1,2, figsize=(16,8))
-    for j,which_w in enumerate(all_which_w):
-        axs[0].plot(n_sgd, y_plot[i,j,:], color=COLORS[j], label=W_LABELS[j])
-        axs[1].plot(n_sgd, sgd_risks[i, j,:], color=COLORS[j], label='SGD - '+W_LABELS[j])
-        axs[1].plot(n_ridge, ridge_risks[i, j,:], linestyle='--', color=COLORS[j], label='Ridge - '+W_LABELS[j])
-    axs[0].grid(color='black', which="both", linestyle='--', linewidth=0.2)
-    axs[0].legend()
-    axs[0].set_xlabel(r'$N_{SGD}$')
-    axs[0].set_ylabel(r'$N_{Ridge}$')
-    axs[0].set_ylim(0,N_max_ridge)
-
-    axs[1].grid(color='black', which="both", linestyle='--', linewidth=0.2)
-    axs[1].legend()
-    axs[1].set_yscale('log')
-    axs[1].set_xlabel('N')
-    axs[1].set_ylabel('Population Risk')
-
-    plt.suptitle('SGD vs Ridge ; H:'+H_LABELS[i]+additional_title)
-    if depth == -1:
-        plt.savefig(SAVE_DIR_FIG+f'benefits_H{which_h}_d{d}')
+    if PLOT_ONLY_N:
+        for j,which_w in enumerate(all_which_w):
+            plt.plot(n_sgd, y_plot[i,j,:], color=COLORS[j], label=W_LABELS[j])
+        plt.grid(color='black', which="both", linestyle='--', linewidth=0.2)
+        plt.legend()
+        plt.xlabel(r'$N_{SGD}$')
+        plt.ylabel(r'$N_{Ridge}$')
+        plt.ylim(0,N_max_ridge)
+        plt.title('SGD vs Ridge ; H:'+H_LABELS[i]+additional_title)
+        if depth == -1:
+            plt.savefig(SAVE_DIR_FIG+f'benefits_partial_H{which_h}_d{d}')
+        else:
+            plt.savefig(SAVE_DIR_FIG+f'benefits_partial_H{which_h}_d{d}_depth{depth}_indim{intern_dim}')
+        plt.show()
     else:
-        plt.savefig(SAVE_DIR_FIG+f'benefits_H{which_h}_d{d}_depth{depth}_indim{intern_dim}')
-    plt.show()
+        fig,axs = plt.subplots(1,2, figsize=(16,8))
+        for j,which_w in enumerate(all_which_w):
+            axs[0].plot(n_sgd, y_plot[i,j,:], color=COLORS[j], label=W_LABELS[j])
+            axs[1].plot(n_sgd, sgd_risks[i, j,:], color=COLORS[j], label='SGD - '+W_LABELS[j])
+            axs[1].plot(n_ridge, ridge_risks[i, j,:], linestyle='--', color=COLORS[j], label='Ridge - '+W_LABELS[j])
+        axs[0].grid(color='black', which="both", linestyle='--', linewidth=0.2)
+        axs[0].legend()
+        axs[0].set_xlabel(r'$N_{SGD}$')
+        axs[0].set_ylabel(r'$N_{Ridge}$')
+        axs[0].set_ylim(0,N_max_ridge)
+
+        axs[1].grid(color='black', which="both", linestyle='--', linewidth=0.2)
+        axs[1].legend()
+        axs[1].set_yscale('log')
+        axs[1].set_xlabel('N')
+        axs[1].set_ylabel('Population Risk')
+
+        plt.suptitle('SGD vs Ridge ; H:'+H_LABELS[i]+additional_title)
+        if depth == -1:
+            plt.savefig(SAVE_DIR_FIG+f'benefits_H{which_h}_d{d}')
+        else:
+            plt.savefig(SAVE_DIR_FIG+f'benefits_H{which_h}_d{d}_depth{depth}_indim{intern_dim}')
+        plt.show()
     

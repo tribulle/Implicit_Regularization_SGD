@@ -104,6 +104,9 @@ if __name__=='__main__':
                         warnings.warn('Lambda values fine-tuned for different values of n_ridge', UserWarning)
             except FileNotFoundError:
                 print(f'No lambdas found - using default lambda={lambda_[0]}')
+    else:
+        lambda_ = np.ones(len(n_ridge)) # default lambda
+        learning_rate = 0.001*np.ones(len(n_sgd)) # default learning rates
 
     # Averaging results
     for i in tqdm(range(nb_avg)):

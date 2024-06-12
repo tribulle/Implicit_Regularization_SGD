@@ -314,7 +314,6 @@ def cross_validation(n, k=10, homogeneous=True, sizes=None):
         
     return train_masks, test_masks
 
-### Generate n_vector of dim_p with multivariate normal distribution
 def generate_data(p = 200, n = 6000, sigma2 = 1, which_w=1, which_h=1):
 
     H = np.diag(np.float_power(np.arange(1,p+1), -which_h))
@@ -334,7 +333,6 @@ def generate_data(p = 200, n = 6000, sigma2 = 1, which_w=1, which_h=1):
 
     return data, observations
 
-### Generate n_vector of dim_p with multivariate normal distribution
 def generate_data_CSV(file_name = 'data/data.csv', n = 6000):
 
     with open(file_name, 'r') as f:

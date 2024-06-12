@@ -19,9 +19,6 @@ N_max_sgd = 500
 n_ridge = np.floor(np.linspace(d,N_max_ridge,100)).astype(dtype=np.uint16) # nb of datapoints for evaluations
 n_sgd = np.floor(np.linspace(d,N_max_sgd,20)).astype(dtype=np.uint16)
 
-lambda_ = 1e-5*np.ones(len(n_ridge)) # default lambda for tests
-learning_rate = 0.001*np.ones(len(n_sgd)) # default learning rates for tests
-
 intern_dim = 10
 depth = -1 # Single Layer
 optimizer = 'SGD'
@@ -104,6 +101,9 @@ if __name__=='__main__':
                         warnings.warn('Lambda values fine-tuned for different values of n_ridge', UserWarning)
             except FileNotFoundError:
                 print(f'No lambdas found - using default lambda={lambda_[0]}')
+    else:
+        lambda_ = np.ones(len(n_ridge)) # default lambda
+        learning_rate = 0.001*np.ones(len(n_sgd)) # default learning rates
 
     # Averaging results
     for i in tqdm(range(nb_avg)):

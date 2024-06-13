@@ -26,10 +26,10 @@ N_max_ridge = 1500
 N_max_sgd = 500
 
 n_fine_tune_params = 10 # nb of hyperparameters tested
-n_fine_tune_params_ridge= n_fine_tune_params*10
+n_fine_tune_params_ridge= n_fine_tune_params
 n_fine_tune_params_sgd=n_fine_tune_params
 lambdas_ = np.logspace(-1,3,n_fine_tune_params_ridge, base=10.0) # range of parameters
-learning_rates = np.logspace(-3,-1,n_fine_tune_params_sgd)
+learning_rates = np.logspace(-3,0,n_fine_tune_params_sgd)
 
 intern_dim = 10
 depth = -1 # Single Layer
@@ -110,18 +110,18 @@ if __name__=='__main__':
         train_masks_ridge, test_masks_ridge = cross_validation(2*N_max_ridge,
                                                                k=CROSS_VAL_K, 
                                                                homogeneous=False, 
-                                                               #sizes=N_max_ridge*np.ones(CROSS_VAL_K, dtype=np.uint16))
-                                                               sizes=np.floor(np.linspace(d,N_max_ridge,CROSS_VAL_K)).astype(dtype=np.uint16))
+                                                               sizes=N_max_ridge*np.ones(CROSS_VAL_K, dtype=np.uint16))
+                                                               #sizes=np.floor(np.linspace(d,N_max_ridge,CROSS_VAL_K)).astype(dtype=np.uint16))
         train_masks_sgd, test_masks_sgd = cross_validation(2*N_max_sgd,
                                                            k=CROSS_VAL_K,
                                                            homogeneous=False,
-                                                           #sizes=N_max_sgd*np.ones(CROSS_VAL_K, dtype=np.uint16))
-                                                           sizes=np.floor(np.linspace(d,N_max_sgd,CROSS_VAL_K)).astype(dtype=np.uint16))
+                                                           sizes=N_max_sgd*np.ones(CROSS_VAL_K, dtype=np.uint16))
+                                                           #sizes=np.floor(np.linspace(d,N_max_sgd,CROSS_VAL_K)).astype(dtype=np.uint16))
     else:
-        train_masks_ridge, test_masks_ridge = cross_validation(ceil(CROSS_VAL_K/(CROSS_VAL_K-1)*N_max_ridge), #4*N_max_ridge
+        train_masks_ridge, test_masks_ridge = cross_validation(2*N_max_ridge,#ceil(CROSS_VAL_K/(CROSS_VAL_K-1)*N_max_ridge),
                                                                k=CROSS_VAL_K, 
                                                                homogeneous=True)
-        train_masks_sgd, test_masks_sgd = cross_validation(ceil(CROSS_VAL_K/(CROSS_VAL_K-1)*N_max_sgd), #4*N_max_sgd
+        train_masks_sgd, test_masks_sgd = cross_validation(2*N_max_sgd,#ceil(CROSS_VAL_K/(CROSS_VAL_K-1)*N_max_sgd),
                                                            k=CROSS_VAL_K,
                                                            homogeneous=True)
         

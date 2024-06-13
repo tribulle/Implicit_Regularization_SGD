@@ -66,9 +66,6 @@ if __name__=='__main__':
     SAVE_RIDGE_LAMBDA = SAVE_DIR_RIDGE + f'lambda_{DATA_FILENAME}.npy'
     SAVE_SGD_GAMMA = SAVE_DIR_SGD + f'gamma_{DATA_FILENAME}.npy'
 
-    n_ridge = np.floor(np.linspace(d,N_max_ridge,100)).astype(dtype=np.uint16)
-    n_sgd = np.floor(np.linspace(d,N_max_sgd,20)).astype(dtype=np.uint16)
-
     ### Begin experiment
     data, observations, means, stds = load_data_CSV(file_name=DATA_FOLDER+DATA_FILENAME+EXT,
                                                 n=None, # None to load all the dataset
@@ -79,6 +76,9 @@ if __name__=='__main__':
     observations = observations[:int(TRAIN_TEST_SPLIT*len(observations))]
 
     d = data.shape[1]
+
+    n_ridge = np.floor(np.linspace(d,N_max_ridge,100)).astype(dtype=np.uint16)
+    n_sgd = np.floor(np.linspace(d,N_max_sgd,20)).astype(dtype=np.uint16)
 
     # Initialization
     w_ridge = np.zeros((nb_avg, len(n_ridge), d))

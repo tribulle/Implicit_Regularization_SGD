@@ -67,19 +67,22 @@ class MultiLayerPerceptron(nn.Sequential):
                 dict.update({str(i) : nn.Linear(intern_dim,intern_dim,bias=isBiased)})
             dict.update({"output" : nn.Linear(intern_dim,output_dim,bias=isBiased)})
             super().__init__(dict)
+        if depth != -1:
+            self.reset_init_weights_biases(method=init) # so that we do not use a default initialization
 
-        self.reset_init_weights_biases() # so that we do not use a default initialization
-
-    def reset_init_weights_biases(self, norm = None):
+    def reset_init_weights_biases(self, norm = None, method='zero'):
         for layer in self.children():
-            if norm == None:
-                stdv = 1. / math.sqrt(layer.weight.size(1))
-            else :
-                stdv = norm
+            if method == 'zero':
+                layer.data.weight.fill_(0)
+            else:
+                if norm is None:
+                    stdv = 1. / math.sqrt(layer.weight.size(1))
+                else :
+                    stdv = norm
             
-            layer.weight.data.uniform_(-stdv, stdv)
-            if layer.bias is not None:
-                layer.bias.data.uniform_(-stdv, stdv)
+                layer.weight.data.uniform_(-stdv, stdv)
+                if layer.bias is not None:
+                    layer.bias.data.uniform_(-stdv, stdv)
 
 class NonLinearMLP(nn.Sequential):
     def __init__(self, input_dim, intern_dim, output_dim, depth=2, isBiased=False, init='uniform'):

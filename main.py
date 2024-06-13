@@ -73,7 +73,7 @@ if __name__=='__main__':
     else:
         
         which_h = 1 # 1,2 or None, controls the decay of eigenvalues
-        
+
         file = 'benefits_real_data_set_crossvalidation.py'
         command_fine_tune = os_command(file, 
                                        ridge_bool=FINE_TUNE_RIDGE, 

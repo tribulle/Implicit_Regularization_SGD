@@ -132,7 +132,7 @@ if __name__=='__main__':
                                          isBiased = False,
                                         ).to(device)
             if SAME_LR: # train once, and organize weights after
-                ws = train(model,
+                ws = train_v2(model,
                           input_Tensor,
                           output_Tensor,
                           lossFct = nn.MSELoss(),

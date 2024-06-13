@@ -171,7 +171,7 @@ if __name__=='__main__':
                 input_Tensor = torch.from_numpy(data[train_mask]).to(device, dtype=torch.float32)
                 output_Tensor = torch.from_numpy(observations[train_mask]).to(device, dtype=torch.float32)
 
-                ws = train_v2(model,
+                ws = train(model,
                           input_Tensor,
                           output_Tensor,
                           lossFct = nn.MSELoss(),

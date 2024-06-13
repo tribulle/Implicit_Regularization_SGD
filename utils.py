@@ -68,7 +68,7 @@ class MultiLayerPerceptron(nn.Sequential):
             dict.update({"output" : nn.Linear(intern_dim,output_dim,bias=isBiased)})
             super().__init__(dict)
         if depth != -1:
-            self.reset_init_weights_biases(method=init) # so that we do not use a default initialization
+            self.reset_init_weights_biases(method='uniform') # so that we do not use a default initialization
 
     def reset_init_weights_biases(self, norm = None, method='zero'):
         for layer in self.children():
@@ -119,18 +119,6 @@ class NonLinearMLP(nn.Sequential):
                 if layer.bias is not None:
                     layer.bias.data.uniform_(-stdv, stdv)
 
-### GD Optimizer
-class GD(torch.optim.Optimizer):
-    def __init__(self, params, lr=0.001):
-        super(GD, self).__init__(params, dict(lr=lr))
-
-    def step(self):
-        for group in self.param_groups:
-            for p in group['params']:
-                if p.grad is not None:
-                    grad = p.grad.data
-                    p.data -= group['lr'] * grad
-
 ### Return Weights of a model as Tensor
 def get_param(model, d, device=torch.device("cpu")):
     w = torch.eye(d, device=device)
@@ -148,8 +136,6 @@ def train(model, input_data, output_data, untilConv = -1, lossFct = 'MSE', optim
         optimizer = torch.optim.SGD(model.parameters(), lr=lr)
     elif optimizer == 'ASGD':
         optimizer = torch.optim.ASGD(model.parameters(), lr=lr)
-    elif optimizer == 'GD':
-        optimizer = GD(model.parameters(), lr=lr)
     
     if lossFct == 'MSE' : lossFct = nn.MSELoss()
     
@@ -168,79 +154,8 @@ def train(model, input_data, output_data, untilConv = -1, lossFct = 'MSE', optim
     if batch_size is not None:
         n_batches = n//batch_size
 
+    rand_idx = torch.randperm(n) # permutation of data samples
     for i in range(epochs):
-        rand_idx = torch.randperm(n) # permutation of data samples
-        if batch_size is not None:
-            loss = 0
-            for t in range(n_batches):
-                idx = rand_idx[t*batch_size:(t+1)*batch_size]
-                y_pred = model(input_data[idx,:]).squeeze_()
-                loss += lossFct(y_pred, output_data[idx])
-        else:
-            y_pred = model(input_data[rand_idx,:]).squeeze_()
-            loss = lossFct(y_pred, output_data[rand_idx])
-        
-        if return_ws or return_vals=='margin':
-            w = get_param(model,d).detach()
-            ws[i,:] = w.cpu()
-
-        if return_vals == 'error':
-            vals[i] = loss.item()
-
-        optimizer.zero_grad()
-        loss.backward()
-        
-        if abs(post_loss - loss.item()) <=untilConv:
-            print("Convergence")
-            break
-        post_loss = loss.item()
-        
-        optimizer.step()
-
-        if debug:
-            if (i+1)%(epochs/debug) == 0:
-                print(f"Epoch: {i+1}   Loss: {loss.item():.3e}")
-
-    if save:
-        torch.save(model.state_dict(), DIRPATH+savename)
-    
-    if return_vals and not return_ws:
-        return vals
-    elif return_ws and not return_vals:
-        return ws
-    elif return_ws and return_vals:
-        return vals, ws
-    
-def train_v2(model, input_data, output_data, untilConv = -1, lossFct = 'MSE', optimizer = 'SGD', lr=0.001, epochs = 20, batch_size=None, return_vals = 'error', return_ws = False, init_norm = None, save = True, debug = False, savename='model.pt'):
-    '''
-    return_vals: 'error', 'margin' or None/False
-    '''
-    if optimizer == 'SGD':
-        optimizer = torch.optim.SGD(model.parameters(), lr=lr)
-    elif optimizer == 'ASGD':
-        optimizer = torch.optim.ASGD(model.parameters(), lr=lr)
-    elif optimizer == 'GD':
-        optimizer = GD(model.parameters(), lr=lr)
-    
-    if lossFct == 'MSE' : lossFct = nn.MSELoss()
-    
-    post_loss = 0
-    n,d = input_data.shape
-
-    if init_norm is not None:
-        model.reset_init_weights_biases(init_norm)
-    
-    if return_vals:
-        vals = np.zeros(epochs)
-    
-    if return_ws:
-        ws = np.zeros((epochs,d))
-        
-    if batch_size is not None:
-        n_batches = n//batch_size
-
-    for i in range(epochs):
-        rand_idx = torch.randperm(n) # permutation of data samples
         
         y_pred = model(input_data[rand_idx[i],:]).squeeze_()
         loss = lossFct(y_pred, output_data[rand_idx[i]])

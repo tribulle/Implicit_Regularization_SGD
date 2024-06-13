@@ -158,7 +158,7 @@ if __name__=='__main__':
                     w_sgd[i,j,:] = np.mean(ws[n//2:n,:], axis=0)
             else: # train for each n
                 for j,n in enumerate(n_sgd):
-                    ws = train_v2(model,
+                    ws = train(model,
                           input_Tensor[:n],
                           output_Tensor[:n],
                           lossFct = nn.MSELoss(),

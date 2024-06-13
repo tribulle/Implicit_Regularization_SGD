@@ -10,7 +10,7 @@ torch.manual_seed(5)
 
 ### Parameters
 COMPUTE_DATA_PLOT = True
-PLOT_ONLY_N = False # plot only the n VS n plot, not the loss
+PLOT_ONLY_N = True # plot only the n VS n plot, not the loss
 
 d = 50
 sigma2 = 1
@@ -27,7 +27,7 @@ all_which_h = [1,2] # 1 or 2 -> i**(-...)
 all_which_w = [0,1,10] # 0, 1 or 10 -> i**(-...)
 
 intern_dim = 10
-depths = [1,2,5,8]
+depths = [1,2,3,4,5]
 
 OUTLIER_DETECTION = True
 threshold_obj = sigma2*4

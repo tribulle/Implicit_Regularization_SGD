@@ -148,7 +148,7 @@ if __name__=='__main__':
                           output_Tensor,
                           lossFct = nn.MSELoss(),
                           optimizer=optimizer,
-                          epochs=N_max_ridge,
+                          epochs=min(N_max_ridge,data_i.shape[0]),
                           batch_size=None,
                           return_vals=False,
                           return_ws=True,

@@ -28,8 +28,9 @@ N_max_sgd = 500
 n_fine_tune_params = 20 # nb of hyperparameters tested
 n_fine_tune_params_ridge= n_fine_tune_params*10
 n_fine_tune_params_sgd=n_fine_tune_params
-lambdas_ = np.logspace(-1,1,n_fine_tune_params_ridge, base=10.0) # range of parameters
-learning_rates = np.logspace(-3,-1,n_fine_tune_params_sgd)
+lambdas_ = np.logspace(-1,3,n_fine_tune_params_ridge, base=10.0) # range of parameters
+learning_rates = np.logspace(-3,0,n_fine_tune_params_sgd)
+
 
 intern_dim = 10
 depth = -1 # Single Layer

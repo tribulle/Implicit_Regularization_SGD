@@ -288,7 +288,7 @@ def cross_validation(n, k=10, homogeneous=True, sizes=None):
         True to have homogeneous groups (in size)
         False to generate uneven groups (see sizes)
     sizes: (k,) array like of ints
-        size of each train group, if homogeneous is True
+        size of each train group, if homogeneous is False
 
     Returns 
     ---
@@ -315,6 +315,30 @@ def cross_validation(n, k=10, homogeneous=True, sizes=None):
     return train_masks, test_masks
 
 def generate_data(p = 200, n = 6000, sigma2 = 1, which_w=1, which_h=1):
+    '''
+    Generates noisy data following a multivariate normal distribution:
+    x ~ N(0,H), y = x^T w + noise
+
+    Arguments
+    ---
+    p: int
+        dimension of the data
+    n: int
+        number of points sampled
+    sigma2: float
+        noise added to the observations
+    which_w: int
+        the true model is w[i] = i^(-which_w)
+    which_h: int
+        the covariance matrix has diagonal h[i] = i^(-which_h)
+    
+    Returns
+    ---
+    data: (n,d) array
+        array of data points
+    observations: (n,) array
+        array of observations
+    '''
 
     H = np.diag(np.float_power(np.arange(1,p+1), -which_h))
     data = np.random.multivariate_normal(
@@ -334,6 +358,32 @@ def generate_data(p = 200, n = 6000, sigma2 = 1, which_w=1, which_h=1):
     return data, observations
 
 def load_data_CSV(file_name = 'data/data.csv', n = 6000, normalize=True, which_h=None):
+    '''
+    Loads data from a CSV file, and normalize it.
+
+    Arguments
+    ---
+    file_name: str
+        path to the csv file (with its extension)
+    n:int
+        number of data to load
+    normalize: bool
+        normalize or not the data (mean 0, standard deviation 1; see which_h)
+    which_h: float or None
+        scales the i-th column of the data to have standard deviation 1/i^(which_h)
+        None/0 to avoid scaling
+    
+    Returns
+    ---
+    data_array: (n,d) array
+        array of data
+    observations: (n,) array
+        array of observations
+    means: (d+1,) array
+        array of means of the (data,observations)
+    stds: (d+1,) array
+        array of the (scaled) standard deviations of the (data, observations)
+    '''
 
     with open(file_name, 'r') as f:
         reader = csv.reader(f)

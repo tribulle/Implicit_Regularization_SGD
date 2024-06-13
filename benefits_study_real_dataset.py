@@ -16,9 +16,12 @@ DATA_FILENAME = 'data'
 EXT='.csv'
 TRAIN_TEST_SPLIT = 0.8
 
+which_h = 1
+
 data, observations, means, stds = load_data_CSV(file_name=DATA_FOLDER+DATA_FILENAME+EXT,
                                                 n=None, # None to load all the dataset
-                                                normalize=True)
+                                                normalize=True,
+                                                which_h=which_h)
 data = data[int(TRAIN_TEST_SPLIT*len(data)):,:]
 observations = observations[int(TRAIN_TEST_SPLIT*len(observations)):]
 

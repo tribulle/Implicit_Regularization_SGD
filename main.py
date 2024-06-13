@@ -35,7 +35,7 @@ REAL_DATASET = False
 if __name__=='__main__':
     if not REAL_DATASET:
         # example of command to execute the desired files (generate data for ridge/sgd, fine tune for ridge/sgd on all w and all h)
-        for which_h in [0]:
+        for which_h in [1,2]:
             for which_w in [0,1,10]:
                 #for depth in [1,2,5,8]:
                     if FINE_TUNE_PER_N:
@@ -72,8 +72,7 @@ if __name__=='__main__':
                     os.system(command_data)
     else:
         
-        which_h = 100
-        which_w = 100 # Just to save the results from csv with another name
+        which_h = 1 # 1,2 or None, controls the decay of eigenvalues
         
         file = 'benefits_real_data_set_crossvalidation.py'
         command_fine_tune = os_command(file, 

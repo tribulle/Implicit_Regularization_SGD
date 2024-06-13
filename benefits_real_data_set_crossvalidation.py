@@ -19,14 +19,6 @@ DATA_FILENAME = 'data'
 EXT='.csv'
 TRAIN_TEST_SPLIT = 0.8
 
-data, observations, means, stds = load_data_CSV(file_name=DATA_FOLDER+DATA_FILENAME+EXT,
-                                                n=None, # None to load all the dataset
-                                                normalize=True)
-data = data[:int(TRAIN_TEST_SPLIT*len(data)),:]
-observations = observations[:int(TRAIN_TEST_SPLIT*len(observations))]
-
-d = data.shape[1]
-
 CROSS_VAL_K = 10
 HOMOGENEOUS = False # homogeneous => tune only on N_max samples, non-homogeneous => tune on various n once
 
@@ -43,8 +35,7 @@ intern_dim = 10
 depth = -1 # Single Layer
 optimizer = 'SGD'
 
-which_h = 1 # 1 or 2 -> i**(-...)
-which_w = 1 # 0, 1 or 10 -> i**(-...)
+which_h = None # None, 1 or 2
 
 FINE_TUNE_RIDGE = True
 FINE_TUNE_SGD = True
@@ -57,9 +48,9 @@ if __name__=='__main__':
                         help='Fine tune SGD')
     parser.add_argument('--Ridge', action=argparse.BooleanOptionalAction, default=FINE_TUNE_RIDGE,
                         help='Fine tune Ridge')
-    parser.add_argument('-H', default=which_h, choices=[1,2], type=int, help='matrix H1 or H2 to use')
-    parser.add_argument('-w', default=which_w, choices=[0,1,10], type=int, help='true vector w0, w1 or w10')
-    parser.add_argument('-d', default=d, type=int, help='dimension of the data')
+    parser.add_argument('-H', default=which_h, choices=[1,2, None], type=int, help='matrix H1 or H2 to use')
+    parser.add_argument('-w', default=0, choices=[0,1,10], type=int, help='true vector w0, w1 or w10')
+    parser.add_argument('-d', default=50, type=int, help='dimension of the data')
     parser.add_argument('--N_ridge', default=N_max_ridge, type=int, help='Max number of data for ridge')
     parser.add_argument('--N_SGD', default=N_max_sgd, type=int, help='Max number of data for SGD')
     parser.add_argument('-k', default=CROSS_VAL_K, type=int, help='k for k fold cross-validation')
@@ -77,6 +68,7 @@ if __name__=='__main__':
 
     FINE_TUNE_RIDGE = args.Ridge
     FINE_TUNE_SGD = args.SGD
+    which_h = args.H
     N_max_ridge = args.N_ridge
     N_max_sgd = args.N_SGD
     depth = args.depth
@@ -92,6 +84,17 @@ if __name__=='__main__':
     SAVE_SGD_GAMMA = SAVE_DIR_SGD + f'gamma_{DATA_FILENAME}.npy'
 
     ### Begin experiment
+
+    data, observations, means, stds = load_data_CSV(file_name=DATA_FOLDER+DATA_FILENAME+EXT,
+                                                n=None, # None to load all the dataset
+                                                normalize=True,
+                                                which_h=which_h)
+    
+    data = data[:int(TRAIN_TEST_SPLIT*len(data)),:]
+    observations = observations[:int(TRAIN_TEST_SPLIT*len(observations))]
+
+    d = data.shape[1]
+
     # Initialization
     if FINE_TUNE_RIDGE:
         objectives_ridge = np.zeros(len(lambdas_))

@@ -333,7 +333,7 @@ def generate_data(p = 200, n = 6000, sigma2 = 1, which_w=1, which_h=1):
 
     return data, observations
 
-def load_data_CSV(file_name = 'data/data.csv', n = 6000, normalize=True):
+def load_data_CSV(file_name = 'data/data.csv', n = 6000, normalize=True, which_h=None):
 
     with open(file_name, 'r') as f:
         reader = csv.reader(f)
@@ -352,6 +352,9 @@ def load_data_CSV(file_name = 'data/data.csv', n = 6000, normalize=True):
     if normalize:
         means = np.mean(data_array, axis=0)
         stds = np.std(data_array, axis=0)
+        if which_h is not None:
+            decay = np.float_power(np.arange(1,data_array.shape[1]+1), which_h)
+            stds = stds*decay
         data_array = (data_array-means)/stds
 
     return data_array[:n,:col-1], data_array[:n, -1], means, stds

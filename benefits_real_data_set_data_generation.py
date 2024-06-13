@@ -17,14 +17,6 @@ DATA_FILENAME = 'data'
 EXT='.csv'
 TRAIN_TEST_SPLIT = 0.8
 
-data, observations, means, stds = load_data_CSV(file_name=DATA_FOLDER+DATA_FILENAME+EXT,
-                                                n=None, # None to load all the dataset
-                                                normalize=True)
-data = data[:int(TRAIN_TEST_SPLIT*len(data)),:]
-observations = observations[:int(TRAIN_TEST_SPLIT*len(observations))]
-
-d = data.shape[1]
-
 nb_avg = 20
 
 N_max_ridge = 1500 # maximal nb of datapoints
@@ -34,8 +26,7 @@ intern_dim = 10
 depth = -1 # Single Layer
 optimizer = 'SGD'
 
-which_h = 1 # 1 or 2 -> i**(-...)
-which_w = 1 # 0, 1 or 10 -> i**(-...)
+which_h = 1 # 1, 2 or None
 
 GENERATE_RIDGE = True # generate ridge weights
 GENERATE_SGD = True # generate SGD weights
@@ -49,8 +40,8 @@ if __name__=='__main__':
                         help='generate SGD data')
     parser.add_argument('--Ridge', action=argparse.BooleanOptionalAction, default=GENERATE_RIDGE,
                         help='generate Ridge data')
-    parser.add_argument('-H', default=which_h, choices=[1,2], type=int, help='matrix H1 or H2 to use')
-    parser.add_argument('-w', default=which_w, choices=[0,1,10], type=int, help='true vector w0, w1 or w10')
+    parser.add_argument('-H', default=which_h, choices=[1,2,None], type=int, help='matrix H1 or H2 to use')
+    parser.add_argument('-w', default=0, choices=[0,1,10], type=int, help='true vector w0, w1 or w10')
     parser.add_argument('-d', default=50, type=int, help='dimension of the data')
     parser.add_argument('--N_ridge', default=N_max_ridge, type=int, help='Max number of data for ridge')
     parser.add_argument('--N_SGD', default=N_max_sgd, type=int, help='Max number of data for SGD')
@@ -61,6 +52,7 @@ if __name__=='__main__':
 
     GENERATE_RIDGE = args.Ridge
     GENERATE_SGD = args.SGD
+    which_h = args.H
     N_max_ridge = args.N_ridge
     N_max_sgd = args.N_SGD
     depth = args.depth
@@ -78,6 +70,16 @@ if __name__=='__main__':
     n_sgd = np.floor(np.linspace(d,N_max_sgd,20)).astype(dtype=np.uint16)
 
     ### Begin experiment
+    data, observations, means, stds = load_data_CSV(file_name=DATA_FOLDER+DATA_FILENAME+EXT,
+                                                n=None, # None to load all the dataset
+                                                normalize=True,
+                                                which_h=which_h)
+    
+    data = data[:int(TRAIN_TEST_SPLIT*len(data)),:]
+    observations = observations[:int(TRAIN_TEST_SPLIT*len(observations))]
+
+    d = data.shape[1]
+
     # Initialization
     w_ridge = np.zeros((nb_avg, len(n_ridge), d))
     w_sgd = np.zeros((nb_avg, len(n_sgd), d))

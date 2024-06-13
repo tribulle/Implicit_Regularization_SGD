@@ -130,7 +130,7 @@ def get_param(model, d, device=torch.device("cpu")):
 ### Trainning function
 def train(model, input_data, output_data, untilConv = -1, lossFct = 'MSE', optimizer = 'SGD', lr=0.001, epochs = 20, batch_size=None, return_vals = 'error', return_ws = False, init_norm = None, save = True, debug = False, savename='model.pt'):
     '''
-    return_vals: 'error', 'margin' or None/False
+    Train a torch model.
     '''
     if optimizer == 'SGD':
         optimizer = torch.optim.SGD(model.parameters(), lr=lr)

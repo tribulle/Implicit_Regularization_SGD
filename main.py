@@ -12,7 +12,7 @@ N_max_ridge = 1500
 N_max_sgd = 500
 
 intern_dim = 10
-depth = -1
+depth = 1
 
 which_h = 2 # 1 or 2 -> i**(-...)
 which_w = 0 # 0, 1 or 10 -> i**(-...)
@@ -20,10 +20,10 @@ which_w = 0 # 0, 1 or 10 -> i**(-...)
 CROSS_VAL_K = 10
 HOMOGENEOUS = False
 
-GENERATE_RIDGE = True # generate ridge weights
+GENERATE_RIDGE = False # generate ridge weights
 GENERATE_SGD = True # generate SGD weights
 
-FINE_TUNE_RIDGE = True
+FINE_TUNE_RIDGE = False
 FINE_TUNE_SGD = True
 FINE_TUNE_PER_N = False
 ridge_crossval = True
@@ -37,7 +37,7 @@ if __name__=='__main__':
         # example of command to execute the desired files (generate data for ridge/sgd, fine tune for ridge/sgd on all w and all h)
         for which_h in [1,2]:
             for which_w in [0,1,10]:
-                #for depth in [1,2,5,8]:
+                for intern_dim in [5,20,50,70]:
                     if FINE_TUNE_PER_N:
                         file = 'benefits_crossvalidation_per_n.py'
                     else:

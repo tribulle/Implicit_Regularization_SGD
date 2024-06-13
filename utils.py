@@ -73,7 +73,7 @@ class MultiLayerPerceptron(nn.Sequential):
     def reset_init_weights_biases(self, norm = None, method='zero'):
         for layer in self.children():
             if method == 'zero':
-                layer.data.weight.fill_(0)
+                layer.weight.data.fill_(0)
             else:
                 if norm is None:
                     stdv = 1. / math.sqrt(layer.weight.size(1))

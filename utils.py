@@ -154,8 +154,8 @@ def train(model, input_data, output_data, untilConv = -1, lossFct = 'MSE', optim
     if batch_size is not None:
         n_batches = n//batch_size
 
+    rand_idx = torch.randperm(n) # permutation of data samples
     for i in range(epochs):
-        rand_idx = torch.randperm(n) # permutation of data samples
         
         y_pred = model(input_data[rand_idx[i],:]).squeeze_()
         loss = lossFct(y_pred, output_data[rand_idx[i]])

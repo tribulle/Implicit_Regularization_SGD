@@ -5,7 +5,7 @@ We investigate the implicit regularization of SGD in non-linear least square set
 
 ## Our work
 This study has 3 parts:
-- Reproduction of the results of REF
+- Reproduction of the results of [The Benefits of Implicit Regularization from SGD in Least Squares Problems](https://arxiv.org/abs/2108.04552)
 - Extension of the results to fully connected linear neural networks
 - Test on a real-world dataset
   

@@ -9,7 +9,7 @@ np.random.seed(5)
 torch.manual_seed(5)
 
 ### Parameters
-COMPUTE_DATA_PLOT = True
+COMPUTE_DATA_PLOT = True ### HERE ### Set to False to load the pre-computed results and display the graphs
 
 DATA_FOLDER = 'data/'
 DATA_FILENAME = 'data'

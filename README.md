@@ -15,3 +15,5 @@ Then a `data_generation` will train several models. Finally, the `study` files w
 
 The two first points of our work can be executed by running the `main.py` file, the different settings are commented in the file. The default mode is to reproduce the results of the article.
 To study the real-world dataset, one must run individually the `benefits_real_data_set_crossvalidation.py`, then `benefits_real_data_set_data_generation.py` and finally `benefits_study_real_dataset.py`.
+
+In order not to recompute all the models, it is possible to run directly the `benefits_study.py` file (and the other `..._study_....py` files) with the variable `COMPUTE_DATA_PLOT=False`. It will load the pre-computed results and display the plots.

@@ -52,7 +52,7 @@ if __name__=='__main__':
             ### HERE ### uncomment 3 lines to generate the data/plots for depth dimension study
             #intern_dim = 10
             #indim_study=True
-            for depth in [1,2,3,4,5]:
+            #for depth in [1,2,3,4,5]:
                 if FINE_TUNE_PER_N:
                     file = 'benefits_crossvalidation_per_n.py'
                 else:
